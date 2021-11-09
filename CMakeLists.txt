@@ -134,10 +134,23 @@ generate_dynamic_reconfigure_options(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES franka_controllers
-#  CATKIN_DEPENDS roscpp rospy std_msgs
-#  DEPENDS system_lib
+ INCLUDE_DIRS include
+ LIBRARIES ${PROJECT_NAME}
+ CATKIN_DEPENDS 
+    controller_interface
+    dynamic_reconfigure
+    eigen_conversions
+    franka_hw
+    franka_gripper
+    geometry_msgs
+    hardware_interface
+    tf
+    tf_conversions
+    message_runtime
+    pluginlib
+    realtime_tools
+    roscpp
+  DEPENDS Franka
 )
 
 ###########
@@ -152,7 +165,13 @@ include
 )
 
 ## Declare a C++ library
-add_library(franka_controllers_src
+# add_library(franka_controllers_src
+#   include/${PROJECT_NAME}/whole_body_controller.h
+#   include/${PROJECT_NAME}/pseudo_inversion.h
+#   src/whole_body_controller.cpp
+# )
+
+add_library(${PROJECT_NAME}
   include/${PROJECT_NAME}/whole_body_controller.h
   include/${PROJECT_NAME}/pseudo_inversion.h
   src/whole_body_controller.cpp
@@ -176,17 +195,35 @@ add_executable(use_whole_body_controller src/use_whole_body_controller.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(franka_controllers_src ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_dependencies(${PROJECT_NAME}
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_gencfg
+)
+
 add_dependencies(use_whole_body_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(franka_controllers_src
+target_link_libraries(${PROJECT_NAME}
+  ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 
 target_link_libraries(use_whole_body_controller
-  franka_controllers_src
+  ${PROJECT_NAME}
   ${catkin_LIBRARIES}
+)
+
+target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
+  ${Franka_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
+)
+target_include_directories(${PROJECT_NAME} PUBLIC
+  include
 )
 
 #############
@@ -202,7 +239,7 @@ target_link_libraries(use_whole_body_controller
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
-install(TARGETS franka_controllers_src
+install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -216,7 +253,7 @@ install(DIRECTORY launch
 install(DIRECTORY config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-install(FILES franka_controllers_plugin.xml
+install(FILES ${PROJECT_NAME}_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

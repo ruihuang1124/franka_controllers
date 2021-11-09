@@ -21,7 +21,7 @@ namespace franka_controllers{
     }
 
     bool WholeBodyController::init(hardware_interface::RobotHW* robot_hw,ros::NodeHandle& node_handle){
-        ROS_INFO("This means the init function is ok!!");
+        // ROS_INFO("This means the init function is ok!!");
         std::vector<double> cartesian_stiffness_vector;
         std::vector<double> cartesian_damping_vector;
         
@@ -90,7 +90,7 @@ namespace franka_controllers{
     }
 
     void WholeBodyController::starting(const ros::Time& /*time*/) {
-        ROS_INFO("This means the starting function is ok!");
+        // ROS_INFO("This means the starting function is ok!");
         // compute initial velocity with jacobian and set x_attractor and q_d_nullspace
         // to initial configuration
         franka::RobotState initial_state = state_handle_->getRobotState();
@@ -107,7 +107,7 @@ namespace franka_controllers{
         q_d_nullspace_ = q_initial;
     }
     void WholeBodyController::update(const ros::Time& /*time*/,const ros::Duration& period) {
-        ROS_INFO("This means the update function is ok!!");
+        // ROS_INFO("This means the update function is ok!!");
         // get state variables
         franka::RobotState robot_state = state_handle_->getRobotState();
         std::array<double, 7> coriolis_array = model_handle_->getCoriolis();

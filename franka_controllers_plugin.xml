@@ -1,4 +1,4 @@
-<library path="lib/libfranka_example_controllers">
+<library path="lib/libfranka_controllers">
   <class name="franka_controllers/WholeBodyController" type="franka_controllers::WholeBodyController" base_class_type="controller_interface::ControllerBase">
     <description>
       A whole body controller that can control both Summit XL and Franka Panda.
