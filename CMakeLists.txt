@@ -29,6 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(Franka 0.7.0 REQUIRED)
+find_package(matlogger2 REQUIRED)
 
 add_message_files(FILES
   JointTorqueComparison.msg
@@ -211,6 +212,8 @@ target_link_libraries(${PROJECT_NAME}
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
 )
+
+# target_link_libraries(mytarget matlogger2::matlogger2)
 
 target_link_libraries(use_whole_body_controller
   ${PROJECT_NAME}

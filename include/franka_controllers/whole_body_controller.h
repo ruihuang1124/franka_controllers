@@ -84,12 +84,66 @@ namespace franka_controllers{
         Eigen::Matrix<double, 6, 6> cartesian_stiffness_target_;
         Eigen::Matrix<double, 6, 6> cartesian_damping_;
         Eigen::Matrix<double, 6, 6> cartesian_damping_target_;
-        Eigen::Matrix<double, 7, 1> q_d_nullspace_;
+        Eigen::Matrix<double, 7, 1> q_d_nullspace_arm_;
+        Eigen::Matrix<double, 3, 1> q_d_nullspace_mobile_;
         Eigen::Vector3d position_d_;
         Eigen::Quaterniond orientation_d_;
         Eigen::Vector3d position_d_target_;
         Eigen::Quaterniond orientation_d_target_;
         std::mutex position_and_orientation_d_target_mutex_;
+
+        // define the command vector to control the mobile robot
+        Eigen::Vector3d mobile_cmd_vel_;
+        Eigen::Vector3d mobile_cmd_vel_old;
+
+        // define the vitual initial and damping matrix for mobile robot  
+        Eigen::Matrix<double, 3, 3> M_adm;
+        Eigen::Matrix<double, 3, 3> D_adm;
+        double mob_tran_Mparams_{30};
+        //double mob_rota_Mparams_{20};
+        double mob_tran_Dparams_{20};
+        //double mob_rota_Dparams_;
+
+        // mobile control message "wheelCommand" with type trajectory_msgs::JointTrajectory publisher pub_mobile_vol_:
+        ros::Publisher pub_mobile_vol_;
+        geometry_msgs::Twist wheelCommand;
+        // trajectory_msgs::JointTrajectory wheelCommand;
+
+        //define the subscriber and its callback function to subscribe the messages from mobile platform:
+        ros::Subscriber sub_mobile_posevol_;
+        void MobileCallback(const nav_msgs::OdometryConstPtr& msg);
+        //the feedback message from mobile platform are stored as:
+        Eigen::Vector3d mobile_fed_position_;
+        Eigen::Vector3d mobile_fed_position_old;
+        Eigen::Vector3d mobile_fed_vel_;
+        bool mobile_callback = false;
+        double roll,pitch,yaw;
+        double r_x,r_y,r_z,x_q,y_q,z_q;
+
+        //Define the dynamic paramaters matrix and a scale matrix for wholebody controller to scale the dynamics of wholebody:
+        Eigen::Matrix<double, 10, 10> scale_matrix;
+        Eigen::Matrix<double, 10, 10> weight_matrix;
+        Eigen::Matrix<double, 6, 6> Cartesian_inertia_inverse; //whole body cartesian inertial matrix
+        Eigen::Matrix<double, 6, 6> weight_Cartesian_inertia_inverse; //whole body scale cartesian inertial matrix
+
+        //Define the Jacobian matrix used in calculating the control torque:
+        Eigen::Matrix<double, 6, 6> W_rz;
+        Eigen::Matrix<double, 6, 3>J_mobile;
+
+        //Define the Transform matrix used in calculating the control torque:
+        Eigen::Matrix<double, 4, 4> transform_mtfb_temp;
+        // feankan base frame under move base frame
+        double x_0=0.21798,y_0=0,z_0=0.51962;
+        Eigen::Matrix<double, 4, 4> transform_wtm_temp;
+        Eigen::Matrix<double, 4, 4> transform_wtfb_temp;
+
+        //full degree vector in null space:
+        Eigen::Matrix<double, 10, 1> q_d_null_full_;
+
+        // Eigen::Matrix<double, 6, 1> error;
+        Eigen::Matrix<double, 6, 1> cartkin_v;
+        
+
     };
 }
 
