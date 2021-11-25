@@ -26,8 +26,7 @@ namespace franka_controllers{
         std::vector<double> cartesian_stiffness_vector;
         std::vector<double> cartesian_damping_vector;
 
-        sub_equilibrium_pose_ = node_handle.subscribe("equilibrium_pose", 20, &WholeBodyController::equilibriumPoseCallback, this,ros::TransportHints().reliable().tcpNoDelay());
-
+        sub_equilibrium_pose_ = node_handle.subscribe("equilibrium_pose", 1, &WholeBodyController::equilibriumPoseCallback, this,ros::TransportHints().reliable().tcpNoDelay());
         std::string arm_id;
         if (!node_handle.getParam("arm_id", arm_id)) {
             ROS_ERROR_STREAM("WholeBodyController: Could not read parameter arm_id");
@@ -134,7 +133,6 @@ namespace franka_controllers{
         }
         if (mobile_callback == true){
         ROS_INFO("Finish delaying!!");
-        // 节点起始设置为0,mobile_fed_position_为底盘回调函数读取的信息
         // q_d_null_full_.head(3) << mobile_fed_position_;
         // mobile_initial_position << mobile_fed_position_;
         r_x = mobile_fed_position_[0];
@@ -192,31 +190,13 @@ namespace franka_controllers{
         q_d_nullspace_mobile_ << r_x,r_y,r_z;
         q_d_null_full_.head(3) = q_d_nullspace_mobile_;
         
-        /*
-        initial frankaexample unchange part:
-                // compute initial velocity with jacobian and set x_attractor and q_d_nullspace
-        // to initial configuration
-        franka::RobotState initial_state = state_handle_->getRobotState();
-        // get jacobian
-        std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector);
-        // convert to eigen
-        Eigen::Map<Eigen::Matrix<double, 7, 1>> q_initial(initial_state.q.data());Eigen::Affine3d initial_transform(Eigen::Matrix4d::Map(initial_state.O_T_EE.data()));
-        // set equilibrium point to current state
-        position_d_ = initial_transform.translation();
-        orientation_d_ = Eigen::Quaterniond(initial_transform.linear());
-        position_d_target_ = initial_transform.translation();
-        orientation_d_target_ = Eigen::Quaterniond(initial_transform.linear());
-        // set nullspace equilibrium configuration to initial q
-        q_d_nullspace_ = q_initial;
-        */
-
         // setting the initial desired M and D matrix for mobile robot;
         virtual_initial_mobile_ <<
         mob_tran_Mparams_,0,0,
         0,mob_tran_Mparams_,0,
         0,0,mob_tran_Mparams_,
         // ration=2 dlr
-        mob_tran_Dparams_ = 2* mob_tran_Mparams_;
+        mob_tran_Dparams_ = 1.5* mob_tran_Mparams_;
         virtual_damping_mobile_ <<  
         mob_tran_Dparams_,0,0,
         0,mob_tran_Dparams_,0,
@@ -275,9 +255,20 @@ namespace franka_controllers{
         std::array<double, 7> coriolis_array = model_handle_->getCoriolis();
         std::array<double, 49> mass_array = model_handle_->getMass();
         std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector);
+        // get the custimized gravity torque:
+        std::array<double, 7> gravity_array = model_handle_->getGravity();
+
+//      std::array<double, 7> getGravity(
+//      const std::array<double, 7>& q,
+//      double total_mass,
+//      const std::array<double, 3>& F_x_Ctotal,  // NOLINT (readability-identifier-naming)
+//      const std::array<double, 3>& gravity_earth = {{0., 0., -9.81}}) const {
+//      return model_->gravity(q, total_mass, F_x_Ctotal, gravity_earth);
+//      }
 
         //3.2) convert to Eigen
         Eigen::Map<Eigen::Matrix<double, 7, 7>> mass(mass_array.data());
+        Eigen::Map<Eigen::Matrix<double, 7, 1>> gravity(gravity.data());
         Eigen::Map<Eigen::Matrix<double, 7, 1>> coriolis(coriolis_array.data());
         Eigen::Map<Eigen::Matrix<double, 6, 7>> jacobian(jacobian_array.data());
         Eigen::Map<Eigen::Matrix<double, 7, 1>> q(robot_state.q.data());
@@ -329,11 +320,14 @@ namespace franka_controllers{
         // Transform to world frame
         error.tail(3) << -transform_full.linear() * error.tail(3);
 
+        // print the current position and orientation under world frame
+        ROS_INFO("Current positon is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, QY:%.4f, QZ:%.4f, QW:%.4f", position(0),position(1),position(2),orientation.x(),orientation.y(),orientation.z(),orientation.w());
+
         tau_imp_w << Jacobian_full.transpose() *(-cartesian_stiffness_ * error - cartesian_damping_ * (Jacobian_full * dq_full));
         tau_null_w << (Eigen::MatrixXd::Identity(10, 10) - Jacobian_full.transpose() *Cartesian_inertia_inverse.inverse()*Jacobian_full*M_full.inverse()) *
                        (nullspace_stiffness_ * (q_d_null_full_ - q_full) - (2.0 * sqrt(nullspace_stiffness_)) * dq_full);
 
-        //Then updating the torque vector;
+        // Then updating the torque vector;
         // ROS_INFO("For test!!!");
         // ROS_INFO("This means the update function is ok!!");       
         //1) To finish the whole-body controller, to command the torque here, 
@@ -422,7 +416,8 @@ namespace franka_controllers{
     }
 
     void WholeBodyController::equilibriumPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg) {
-        std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
+        ROS_WARN_STREAM("Received the target equilibriumPose!");
+        // std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
         position_d_target_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
         Eigen::Quaterniond last_orientation_d_target(orientation_d_target_);
         orientation_d_target_.coeffs() << msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w;
@@ -445,9 +440,6 @@ namespace franka_controllers{
         // mobile_fed_vel_=roation_wtm.transpose()*mobile_fed_vel_;
         mobile_callback = true;
     }
-
-    
-
 
 }// namespace franka_example_controllers
 
