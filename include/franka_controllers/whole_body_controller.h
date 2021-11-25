@@ -96,9 +96,11 @@ namespace franka_controllers{
         Eigen::Vector3d mobile_cmd_vel_;
         Eigen::Vector3d mobile_cmd_vel_old;
 
-        // define the vitual initial and damping matrix for mobile robot  
-        Eigen::Matrix<double, 3, 3> M_adm;
-        Eigen::Matrix<double, 3, 3> D_adm;
+        // define the vitual initial and damping matrix for mobile robot
+        Eigen::Matrix<double, 3, 3> virtual_initial_mobile_;
+        Eigen::Matrix<double, 3, 3> virtual_initial_mobile_target_;
+        Eigen::Matrix<double, 3, 3> virtual_damping_mobile_;
+        Eigen::Matrix<double, 3, 3> virtual_damping_mobile_target_;
         double mob_tran_Mparams_{30};
         //double mob_rota_Mparams_{20};
         double mob_tran_Dparams_{20};

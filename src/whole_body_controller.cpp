@@ -120,9 +120,7 @@ namespace franka_controllers{
         0,0,0,
         0,0,0,
         0,0,1;
-
         return true;
-
     }
 
     void WholeBodyController::starting(const ros::Time& /*time*/) {
@@ -212,14 +210,14 @@ namespace franka_controllers{
         q_d_nullspace_ = q_initial;
         */
 
-        // setting the desired M and D matrix for mobile robot;
-        M_adm <<
+        // setting the initial desired M and D matrix for mobile robot;
+        virtual_initial_mobile_ <<
         mob_tran_Mparams_,0,0,
         0,mob_tran_Mparams_,0,
         0,0,mob_tran_Mparams_,
-        // ration=3.2 dlr
-        mob_tran_Dparams_ = 3.2 * mob_tran_Mparams_;
-        D_adm <<  
+        // ration=2 dlr
+        mob_tran_Dparams_ = 2* mob_tran_Mparams_;
+        virtual_damping_mobile_ <<  
         mob_tran_Dparams_,0,0,
         0,mob_tran_Dparams_,0,
         0,0,mob_tran_Dparams_;
@@ -307,7 +305,7 @@ namespace franka_controllers{
         Jacobian_full.block<6,3>(0,0) = J_mobile;  
         Jacobian_full.block<6,7> (0,3) = Jacobian_temp;
 
-        M_full.block<3,3>(0,0) = M_adm; 
+        M_full.block<3,3>(0,0) = virtual_initial_mobile_; 
         M_full.block<7,7>(3,3) = mass; 
 
         // weight_matrix=M_full.inverse()*scale_matrix;
@@ -336,64 +334,8 @@ namespace franka_controllers{
                        (nullspace_stiffness_ * (q_d_null_full_ - q_full) - (2.0 * sqrt(nullspace_stiffness_)) * dq_full);
 
         //Then updating the torque vector;
-
         // ROS_INFO("For test!!!");
-
-        // ROS_INFO("This means the update function is ok!!");
-
-        /* initial cartesian impedance controller code block:
-        
-                // get state variables
-        franka::RobotState robot_state = state_handle_->getRobotState();
-        std::array<double, 7> coriolis_array = model_handle_->getCoriolis();
-        std::array<double, 42> jacobian_array = model_handle_->getZeroJacobian(franka::Frame::kEndEffector);
-        // convert to Eigen
-        Eigen::Map<Eigen::Matrix<double, 7, 1>> coriolis(coriolis_array.data());
-        Eigen::Map<Eigen::Matrix<double, 6, 7>> jacobian(jacobian_array.data());
-        Eigen::Map<Eigen::Matrix<double, 7, 1>> q(robot_state.q.data());
-        Eigen::Map<Eigen::Matrix<double, 7, 1>> dq(robot_state.dq.data());
-        Eigen::Map<Eigen::Matrix<double, 7, 1>> tau_J_d(// NOLINT readability-identifier-naming)
-        robot_state.tau_J_d.data());
-        Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
-        Eigen::Vector3d position(transform.translation());
-        Eigen::Quaterniond orientation(transform.linear());
-        // compute error to desired pose
-        // position error
-        Eigen::Matrix<double, 6, 1> error;
-        error.head(3) << position - position_d_;
-        // orientation error
-        if (orientation_d_.coeffs().dot(orientation.coeffs()) < 0.0) {
-            orientation.coeffs() << -orientation.coeffs();
-            }
-        // "difference" quaternion
-        Eigen::Quaterniond error_quaternion(orientation.inverse() * orientation_d_);
-        error.tail(3) << error_quaternion.x(), error_quaternion.y(), error_quaternion.z();
-        // Transform to base frame
-        error.tail(3) << -transform.linear() * error.tail(3);
-
-        // compute control
-        // allocate variables
-        Eigen::VectorXd tau_task(7), tau_nullspace(7), tau_d(7), tau_d_r(7), tau_d_w(10),tau_imp_w(10),tau_null_w(10),tau_d_m(3);
-
-        // pseudoinverse for nullspace handling
-        // kinematic pseuoinverse
-        Eigen::MatrixXd jacobian_transpose_pinv;
-        pseudoInverse(jacobian.transpose(), jacobian_transpose_pinv);
-
-        // Cartesian PD control with damping ratio = 1
-        tau_task << jacobian.transpose() * (-cartesian_stiffness_ * error - cartesian_damping_ * (jacobian * dq));
-        // nullspace PD control with damping ratio = 1
-        tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) - jacobian.transpose() * jacobian_transpose_pinv) * (nullspace_stiffness_ * (q_d_nullspace_ - q) - (2.0 * sqrt(nullspace_stiffness_)) * dq);
-
-        tau_d << tau_task + tau_nullspace + coriolis;
-        // Saturate torque rate to avoid discontinuities
-        tau_d << saturateTorqueRate(tau_d, tau_J_d);
-        for (size_t i = 0; i < 7; ++i) {
-            joint_handles_[i].setCommand(tau_d(i));
-            }
-
-        
-        */        
+        // ROS_INFO("This means the update function is ok!!");       
         //1) To finish the whole-body controller, to command the torque here, 
         //step zero to ommit the original cartesian controller:
         // Desired torque
@@ -406,22 +348,14 @@ namespace franka_controllers{
         for (size_t i = 0; i < 7; ++i) {
             joint_handles_[i].setCommand(tau_d_r(i));
             }
-        // update parameters changed online either through dynamic reconfigure or through the interactive
-        // target by filtering
-        cartesian_stiffness_ = filter_params_ * cartesian_stiffness_target_ + (1.0 - filter_params_) * cartesian_stiffness_;
-        cartesian_damping_ = filter_params_ * cartesian_damping_target_ + (1.0 - filter_params_) * cartesian_damping_;
-        nullspace_stiffness_ = filter_params_ * nullspace_stiffness_target_ + (1.0 - filter_params_) * nullspace_stiffness_;
-        std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
-        position_d_ = filter_params_ * position_d_target_ + (1.0 - filter_params_) * position_d_;
-        orientation_d_ = orientation_d_.slerp(filter_params_, orientation_d_target_);
 
         //1.2) Then need to write down the final velocity command for summit_xl steel here as(publish the velocity command as a topic):
         //1.2.1) first calculate the desired velocity with the admittance control:
         tau_d_m << tau_d_w.head(3);
         // Integrate the acceleration to mobile velocity
-        mobile_cmd_vel_=((M_adm+period.toSec()*D_adm).inverse())*(M_adm*mobile_cmd_vel_old+period.toSec()*tau_d_m);//Admittance Control for mobile robot;
-  //   mobile_cmd_acc_ = M_adm.inverse()*(tau_m - D_adm*mobile_cmd_vel_);
-  //   mobile_cmd_vel_ = mobile_cmd_vel_ + period.toSec()*mobile_cmd_acc_;
+        mobile_cmd_vel_=((virtual_initial_mobile_+period.toSec()*virtual_damping_mobile_).inverse())*(virtual_initial_mobile_*mobile_cmd_vel_old+period.toSec()*tau_d_m);//Admittance Control for mobile robot;
+        //mobile_cmd_acc_ = M_adm.inverse()*(tau_m - D_adm*mobile_cmd_vel_);
+        //mobile_cmd_vel_ = mobile_cmd_vel_ + period.toSec()*mobile_cmd_acc_;
         mobile_cmd_vel_old=mobile_cmd_vel_;
         //1.2.2) used the desired vel to initial the rostopic mes wheelCommand and then pub:
         /* initial the rostopic:
@@ -445,7 +379,17 @@ namespace franka_controllers{
         wheelCommand.angular.y = 0;
         wheelCommand.angular.z = mobile_cmd_vel_(2);
         pub_mobile_vol_.publish(wheelCommand);
-        //after publishing the control command for the mobile platform, an update loop for controlling is finished.
+        // after publishing the control command for the mobile platform, an update loop for controlling is finished.
+        // then update parameters changed online either through dynamic reconfigure or through the interactive
+        // target by filtering
+        cartesian_stiffness_ = filter_params_ * cartesian_stiffness_target_ + (1.0 - filter_params_) * cartesian_stiffness_;
+        cartesian_damping_ = filter_params_ * cartesian_damping_target_ + (1.0 - filter_params_) * cartesian_damping_;
+        nullspace_stiffness_ = filter_params_ * nullspace_stiffness_target_ + (1.0 - filter_params_) * nullspace_stiffness_;
+        //update the virtual_damping_mobile matrix:
+        // virtual_damping_mobile_ = filter_params_ * virtual_damping_mobile_target_ + (1.0 - filter_params_) * virtual_damping_mobile_;
+        std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
+        position_d_ = filter_params_ * position_d_target_ + (1.0 - filter_params_) * position_d_;
+        orientation_d_ = orientation_d_.slerp(filter_params_, orientation_d_target_);
     }
 
     Eigen::Matrix<double, 7, 1> WholeBodyController::saturateTorqueRate(
@@ -470,6 +414,11 @@ namespace franka_controllers{
         cartesian_damping_target_.topLeftCorner(3, 3) << 2.0 * sqrt(config.translational_stiffness) * Eigen::Matrix3d::Identity();
         cartesian_damping_target_.bottomRightCorner(3, 3) << 2.0 * sqrt(config.rotational_stiffness) * Eigen::Matrix3d::Identity();
         nullspace_stiffness_target_ = config.nullspace_stiffness;
+        // virtual inertial and virtual damping update for the mobile platform:
+        virtual_initial_mobile_target_.setIdentity();
+        virtual_initial_mobile_target_<<config.mobile_virtual_initial * Eigen::Matrix3d::Identity();
+        virtual_damping_mobile_target_.setIdentity();
+        virtual_damping_mobile_target_<<config.mobile_virtual_damping * Eigen::Matrix3d::Identity();
     }
 
     void WholeBodyController::equilibriumPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg) {
