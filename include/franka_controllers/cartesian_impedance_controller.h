@@ -71,6 +71,22 @@ class CartesianImpedanceController : public controller_interface::MultiInterface
   // Equilibrium pose subscriber
   ros::Subscriber sub_equilibrium_pose_;
   void equilibriumPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg);
+
+
+    //custimized_install_paramaters:
+    double tool_mass;
+    std::array<double, 3> tool_vector{};
+    bool tool_install = false;
+    bool customized_install = false;
+    std::array<double, 3> customized_gravity_direction{};
+    // If the robot is installed other than the default pose
+    bool *customized_install_;
+    std::array<double, 3> *customized_gravity_direction_;
+    std::array<double, 3> *gravity_earth_;
+    // If the robot is installed with tool:
+    bool *tool_install_;
+    double tool_mass_;
+    std::array<double, 3> *tool_vector_;
 };
 
 }  // namespace franka_example_controllers

@@ -321,7 +321,7 @@ namespace franka_controllers{
         error.tail(3) << -transform_full.linear() * error.tail(3);
 
         // print the current position and orientation under world frame
-        ROS_INFO("Current positon is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, QY:%.4f, QZ:%.4f, QW:%.4f", position(0),position(1),position(2),orientation.x(),orientation.y(),orientation.z(),orientation.w());
+        ROS_INFO_THROTTLE(3,"Current positon is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, QY:%.4f, QZ:%.4f, QW:%.4f", position(0),position(1),position(2),orientation.x(),orientation.y(),orientation.z(),orientation.w());
 
         tau_imp_w << Jacobian_full.transpose() *(-cartesian_stiffness_ * error - cartesian_damping_ * (Jacobian_full * dq_full));
         tau_null_w << (Eigen::MatrixXd::Identity(10, 10) - Jacobian_full.transpose() *Cartesian_inertia_inverse.inverse()*Jacobian_full*M_full.inverse()) *
