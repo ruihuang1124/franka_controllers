@@ -177,9 +177,11 @@ add_library(${PROJECT_NAME}
   include/${PROJECT_NAME}/cartesian_impedance_controller.h
   include/${PROJECT_NAME}/joint_impedance_controller.h
   include/${PROJECT_NAME}/pseudo_inversion.h
+  include/${PROJECT_NAME}/dual_arm_cartesian_impedance_controller.h
   src/whole_body_controller.cpp
   src/joint_impedance_controller.cpp
   src/cartesian_impedance_controller.cpp
+  src/dual_arm_cartesian_impedance_controller.cpp
 )
 
 ## Add cmake target dependencies of the library

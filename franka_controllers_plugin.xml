@@ -4,20 +4,20 @@
       A whole body controller that can control both Summit XL and Franka Panda.
     </description>
   </class>
-</library>
-
-<library path="lib/libfranka_controllers">
   <class name="franka_controllers/CartesianImpedanceController" type="franka_controllers::CartesianImpedanceController" base_class_type="controller_interface::ControllerBase">
-    <description>
-      A copy of cartesian_impedance_controller that can only control one Franka Panda.
-    </description>
+  <description>
+    A copy of cartesian_impedance_controller that can only control one Franka Panda.
+  </description>
+  </class>
+  <class name="franka_controllers/JointImpedanceController" type="franka_controllers::JointImpedanceController" base_class_type="controller_interface::ControllerBase">
+  <description>
+    A copy of cartesian_impedance_controller that can only control one Franka Panda.
+  </description>
+  </class>
+  <class name="franka_controllers/DualArmCartesianImpedanceController" type="franka_controllers::DualArmCartesianImpedanceController" base_class_type="controller_interface::ControllerBase">
+  <description>
+    A copy of cartesian_impedance_controller that can only control one Franka Panda.
+  </description>
   </class>
 </library>
 
-<library path="lib/libfranka_controllers">
-  <class name="franka_controllers/JointImpedanceController" type="franka_controllers::JointImpedanceController" base_class_type="controller_interface::ControllerBase">
-    <description>
-      A copy of cartesian_impedance_controller that can only control one Franka Panda.
-    </description>
-  </class>
-</library>

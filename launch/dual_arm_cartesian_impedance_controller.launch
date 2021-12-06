@@ -1,0 +1,34 @@
+<?xml version="1.0" ?>
+<launch>
+  <!--Be sure to pass the IPs of your pandas like robot_ips:="{panda_1/robot_ip: <my_ip_1>, panda_2/robot_ip: <my_ip_2>}"   -->
+  <!-- left arm: The gravity is:7.7643666267395020, 5.8736524581909180,-1.2045484781265259-->
+  <!-- left arm: 0.304627  -0.732708  0.608557         0
+                 -0.366813  0.499394 0.784891         0
+                -0.879005  -0.462326 -0.116638         0
+                 0         0         0                1-->
+  <!-- right arm: The gravity is:7.7643666267395020, -5.8736524581909180,-1.2045484781265259-->
+  <!--right arm: 0.304627  0.732708  0.608557         0
+                 0.366813  0.499394 -0.784891         0
+                -0.879005  0.462326 -0.116638         0
+                 0         0         0                1-->
+  <!--panda 2 is left-->
+  <arg name="robot_ips" default="{panda_1/robot_ip: 192.168.0.121, panda_2/robot_ip: 192.168.0.120}"/>
+
+  <arg name="robot_id" default="panda_dual" />
+  <arg name="rviz" default="true" />
+  <arg name="rqt" default="true" />
+
+  <include file="$(find franka_control)/launch/franka_combined_control.launch" >
+    <arg name="robot_id" value="$(arg robot_id)" />
+    <arg name="robot_ips" value="$(arg robot_ips)" />
+  </include>
+
+  <group ns="$(arg robot_id)">
+    <rosparam command="load" file="$(find franka_controllers)/config/franka_controllers.yaml" />
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="dual_arm_cartesian_impedance_controller"/>
+    <node name="interactive_marker_left" pkg="franka_example_controllers" type="dual_arm_interactive_marker.py"
+      args="--right_arm_id panda_1 --left_arm_id panda_2" required="false" output="screen" />
+    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" required="false" if="$(arg rqt)"/>
+    <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/rviz/franka_dual_description_with_marker.rviz" if="$(arg rviz)"/>
+  </group>
+</launch>
