@@ -67,6 +67,8 @@ bool CartesianImpedanceController::init(hardware_interface::RobotHW* robot_hw,
       "equilibrium_pose", 20, &CartesianImpedanceController::equilibriumPoseCallback, this,
       ros::TransportHints().reliable().tcpNoDelay());
 
+  sub_desired_joint_state_ = node_handle.subscribe("desire_joint", 20, &CartesianImpedanceController::jointCommandCallback, this, ros::TransportHints().reliable().tcpNoDelay());
+
   std::string arm_id;
   if (!node_handle.getParam("arm_id", arm_id)) {
     ROS_ERROR_STREAM("CartesianImpedanceExampleController: Could not read parameter arm_id");
@@ -299,7 +301,8 @@ void CartesianImpedanceController::complianceParamCallback(
 
 void CartesianImpedanceController::equilibriumPoseCallback(
     const geometry_msgs::PoseStampedConstPtr& msg) {
-        ROS_ERROR("receive target equilibriumPose");
+  //kEndEffector
+  ROS_ERROR("receive target equilibriumPose");
   std::lock_guard<std::mutex> position_d_target_mutex_lock(
       position_and_orientation_d_target_mutex_);
   position_d_target_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
@@ -310,6 +313,52 @@ void CartesianImpedanceController::equilibriumPoseCallback(
     orientation_d_target_.coeffs() << -orientation_d_target_.coeffs();
   }
 }
+
+void CartesianImpedanceController::jointCommandCallback(
+    const sensor_msgs::JointState_<std::allocator<void>>::ConstPtr &msg)
+{
+  std::array<double, 7> joint_position_cmd{};
+  std::array<double, 7> joint_velocity_cmd{};
+  if (msg->position.size() != 7)
+  {
+    ROS_ERROR_STREAM("Franka Joint Command Interface: Position values in the given msg is not 7 " << msg->position.size());
+    return;
+  }
+  bool have_vel = (msg->velocity.size() == 7);
+  for (size_t i = 0; i < msg->position.size(); ++i)
+  {
+    q_d_nullspace_(i) = msg->position[i];
+    joint_position_cmd[i] = msg->position[i];
+    if (have_vel)
+    {
+      joint_velocity_cmd[i] = msg->velocity[i];
+    }
+    else
+    {
+      joint_velocity_cmd[i] = 0.;
+    }
+  }
+
+  std::array<double, 16> F_T_EE = {0};  // NOLINT(readability-identifier-naming)
+  std::array<double, 16> EE_T_K = {0};  // NOLINT(readability-identifier-naming)
+  // F_T_EE.zero();
+  std::array<double, 16> EEPose = model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
+  std::lock_guard<std::mutex> position_d_target_mutex_lock(
+      position_and_orientation_d_target_mutex_);
+  position_d_target_ << EEPose[3], EEPose[7], EEPose[11];
+
+  Eigen::Quaterniond last_orientation_d_target(orientation_d_target_);
+  Eigen::Matrix<double, 3, 3> rotationMatrix;
+  rotationMatrix << EEPose[0], EEPose[1], EEPose[2], EEPose[4], EEPose[5], EEPose[6], EEPose[8], EEPose[9], EEPose[10];
+  Eigen::Quaterniond new_orientation_target(rotationMatrix);
+  orientation_d_target_.coeffs() << new_orientation_target.coeffs().transpose().x(), new_orientation_target.coeffs().transpose().y(),
+      new_orientation_target.coeffs().transpose().z(), new_orientation_target.coeffs().transpose().w();
+  if (last_orientation_d_target.coeffs().dot(orientation_d_target_.coeffs()) < 0.0)
+  {
+    orientation_d_target_.coeffs() << -orientation_d_target_.coeffs();
+  }
+}
+
 
 }  // namespace franka_example_controllers
 

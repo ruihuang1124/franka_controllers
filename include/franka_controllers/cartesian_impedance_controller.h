@@ -24,6 +24,7 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include "franka_controllers/compliance_paramConfig.h"
+#include <sensor_msgs/JointState.h>
 
 namespace franka_controllers {
 
@@ -72,6 +73,8 @@ class CartesianImpedanceController : public controller_interface::MultiInterface
   ros::Subscriber sub_equilibrium_pose_;
   void equilibriumPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg);
 
+  ros::Subscriber sub_desired_joint_state_;
+  void jointCommandCallback(const sensor_msgs::JointState_<std::allocator<void>>::ConstPtr &msg);
 
     //custimized_install_paramaters:
     double tool_mass;

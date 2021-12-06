@@ -46,40 +46,96 @@ int main(int argc, char *argv[])
     mobile_move_test.angular.z = 0;
     
     //Code about Calculating the rotation matrix and gravity direction when tilt mounting
-    Eigen::MatrixXf rotation1(4, 4), rotation2(4, 4), rotation3(4, 4), rotation4(4, 4), rotation5(4, 4), rotationFinal(4, 4), rotation6(4, 4), rotation7(4, 4);
-    Eigen::MatrixXf vet1(4, 1), vet2(4, 1), vet3_gravity_incustomized(4, 1), vetG(4, 1), vettemp(4, 1);
+    Eigen::MatrixXf rotation_left_1(4, 4), rotation_left_2(4, 4), rotation_left_3(4, 4), rotation4(4, 4), rotation5(4, 4), rotationFinal(4, 4), rotation_left_4(4, 4), rotation_left(4, 4), rotation_right_1(4, 4), rotation_right_2(4, 4), rotation_right_3(4, 4), rotation_right_4(4, 4), rotation_right(4, 4);
+    Eigen::MatrixXf vet1(4, 1), vet2(4, 1), left_gravity_incustomized_direction(4, 1), gravity_earth_direction(4, 1), vettemp(4, 1), right_gravity_incustomized_direction(4, 1);
+    Eigen::Matrix<double, 3, 3> rotationMatrix_left, rotationMatrix_right;
     vet1 << 0, 1, 0, 1;
-    vetG << 0, 0, -9.81, 0;
-    rotation1 << 0, 0, 1, 0,
+    gravity_earth_direction << 0, 0, -9.81, 0;
+    rotation_left_1 << 0, 0, 1, 0,
         0, 1, 0, 0,
         -1, 0, 0, 0,
         0, 0, 0, 1; //rotation around Y 90 degree;
-    rotation2 << 1, 0, 0, 0,
-        0, cos(PI / 4), -sin(PI / 4), 0,
-        0, sin(PI / 4), cos(PI / 4), 0,
+    rotation_left_2 << 1, 0, 0, 0,
+        0, cos(- PI / 4), -sin(- PI / 4), 0,
+        0, sin(- PI / 4), cos(- PI / 4), 0,
         0, 0, 0, 1; //rotation around X -45 degree;
-    rotation3 << cos(PI / 6), -sin(PI / 6), 0, 0,
-        sin(PI / 6), cos(PI / 6), 0, 0,
+    rotation_left_3 << cos(- PI / 6), -sin(- PI / 6), 0, 0,
+        sin(- PI / 6), cos(- PI / 6), 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1; //rotation around Z -30 degree;
-    rotation6 << cos(-10 * PI / 180), 0, sin(-10 * PI / 180), 0,
+    rotation_left_4 << cos(-10 * PI / 180), 0, sin(-10 * PI / 180), 0,
         0, 1, 0, 0,
         -sin(-10 * PI / 180), 0, cos(-10 * PI / 180), 0,
         0, 0, 0, 1; //rotation vector in original base frame, Y+ direction
 
-    rotation7 = rotation6 * rotation1 * rotation2 * rotation3;
+    rotation_left = rotation_left_4 * rotation_left_1 * rotation_left_2 * rotation_left_3;
+    ROS_ERROR("Left_arm rotataion matrix:");
+    ROS_WARN_STREAM(rotation_left);
+    left_gravity_incustomized_direction = rotation_left.inverse() * gravity_earth_direction;
+    left_gravity_incustomized_direction(3, 0) = 0;
+    ROS_ERROR("Light_arm gravity direction is:%.16f,%.16f,%.16f,%.16f", left_gravity_incustomized_direction(0, 0), left_gravity_incustomized_direction(1, 0), left_gravity_incustomized_direction(2, 0), left_gravity_incustomized_direction.norm());
 
-    rotation4 = rotation1 * rotation2 * rotation3;
+    rotationMatrix_left(0, 0) = rotation_left(0, 0);
+    rotationMatrix_left(0, 1) = rotation_left(0, 1);
+    rotationMatrix_left(0, 2) = rotation_left(0, 2);
+    rotationMatrix_left(1, 0) = rotation_left(1, 0);
+    rotationMatrix_left(1, 1) = rotation_left(1, 1);
+    rotationMatrix_left(1, 2) = rotation_left(1, 2);
+    rotationMatrix_left(2, 0) = rotation_left(2, 0);
+    rotationMatrix_left(2, 1) = rotation_left(2, 1);
+    rotationMatrix_left(2, 2) = rotation_left(2, 2);
 
+    Eigen::Quaterniond q_left(rotationMatrix_left);
+    ROS_ERROR("left_arm rotation:x:%.16f,y:%.16f,z:%.16f,w:%.16f", q_left.coeffs().transpose().x(), q_left.coeffs().transpose().y(), q_left.coeffs().transpose().z(), q_left.coeffs().transpose().w());
+    ROS_WARN_STREAM(q_left.coeffs().transpose());
+
+    rotation_right_1 << 0, 0, 1, 0,
+        0, 1, 0, 0,
+        -1, 0, 0, 0,
+        0, 0, 0, 1; //rotation around Y 90 degree;
+    rotation_right_2 << 1, 0, 0, 0,
+        0, cos(PI / 4), -sin(PI / 4), 0,
+        0, sin(PI / 4), cos(PI / 4), 0,
+        0, 0, 0, 1; //rotation around X -45 degree;
+    rotation_right_3 << cos(PI / 6), -sin(PI / 6), 0, 0,
+        sin(PI / 6), cos(PI / 6), 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1; //rotation around Z -30 degree;
+    rotation_right_4 << cos(-10 * PI / 180), 0, sin(-10 * PI / 180), 0,
+        0, 1, 0, 0,
+        -sin(-10 * PI / 180), 0, cos(-10 * PI / 180), 0,
+        0, 0, 0, 1; //rotation vector in original base frame, Y+ direction
+
+    rotation_right = rotation_right_4 * rotation_right_1 * rotation_right_2 * rotation_right_3;
+    ROS_ERROR("Right_arm rotataion matrix:");
+    ROS_WARN_STREAM(rotation_right);
+    right_gravity_incustomized_direction = rotation_right.inverse() * gravity_earth_direction;
+    right_gravity_incustomized_direction(3, 0) = 0;
+    ROS_ERROR("Right_arm gravity direction is:%.16f,%.16f,%.16f,%.16f", right_gravity_incustomized_direction(0, 0), right_gravity_incustomized_direction(1, 0), right_gravity_incustomized_direction(2, 0), right_gravity_incustomized_direction.norm());
+    rotationMatrix_right(0, 0) = rotation_right(0, 0);
+    rotationMatrix_right(0, 1) = rotation_right(0, 1);
+    rotationMatrix_right(0, 2) = rotation_right(0, 2);
+    rotationMatrix_right(1, 0) = rotation_right(1, 0);
+    rotationMatrix_right(1, 1) = rotation_right(1, 1);
+    rotationMatrix_right(1, 2) = rotation_right(1, 2);
+    rotationMatrix_right(2, 0) = rotation_right(2, 0);
+    rotationMatrix_right(2, 1) = rotation_right(2, 1);
+    rotationMatrix_right(2, 2) = rotation_right(2, 2);
+
+    Eigen::Quaterniond q_right(rotationMatrix_right);
+    ROS_ERROR("right_arm rotation:x:%.16f,y:%.16f,z:%.16f,w:%.16f", q_right.coeffs().transpose().x(), q_right.coeffs().transpose().y(), q_right.coeffs().transpose().z(), q_right.coeffs().transpose().w());
+    ROS_WARN_STREAM(q_right.coeffs().transpose());
+
+    rotation4 = rotation_left_1 * rotation_left_2 * rotation_left_3;
     vet2 = rotation4.inverse() * vet1;
     vet2(3, 0) = 0;
     vet2.normalize();
-    ROS_ERROR("tes value is:%.8f,%.8f,%.8f，%.8f", vet2(0, 0), vet2(1, 0), vet2(2, 0), vet2.norm());
+    // ROS_ERROR("tes value is:%.8f,%.8f,%.8f，%.8f", vet2(0, 0), vet2(1, 0), vet2(2, 0), vet2.norm());
     double a = vet2(0, 0);
     double b = vet2(1, 0);
     double c = vet2(2, 0);
     double xita = -10 * PI / 180;
-    ROS_ERROR("tes value is:%.8f,%.8f,%.8f，%.8f", vet2(0, 0), vet2(1, 0), vet2(2, 0), vet2.norm());
+    // ROS_ERROR("tes value is:%.8f,%.8f,%.8f，%.8f", vet2(0, 0), vet2(1, 0), vet2(2, 0), vet2.norm());
     rotation5(0, 0) = a * a + (1 - a * a) * cos(xita);
     rotation5(0, 1) = a * b * (1 - cos(xita)) + c * sin(xita);
     rotation5(0, 2) = a * c * (1 - cos(xita)) - b * sin(xita);
@@ -113,12 +169,17 @@ int main(int argc, char *argv[])
     // rotation5(3, 1) = 0;
     // rotation5(3, 2) = 0;
     // rotation5(3, 3) = 1;
-
     rotationFinal = rotation5 * rotation4;
-    ROS_WARN_STREAM(rotationFinal);
-    vet3_gravity_incustomized = rotation7.inverse() * vetG;
-    vet3_gravity_incustomized(3, 0) = 0;
-    ROS_ERROR("The final value is:%.16f,%.16f,%.16f,%.16f", vet3_gravity_incustomized(0, 0), vet3_gravity_incustomized(1, 0), vet3_gravity_incustomized(2, 0), vet3_gravity_incustomized.norm());
+
+    // Eigen::Quaterniond q_compare(0.747283, 0.436865, 0.49775, -0.0544277);
+    // ROS_WARN_STREAM(q_compare.coeffs().transpose());
+    // // ROS_ERROR("x:%.16f,y:%.16f,z:%.16f,w:%.16f", q.coeffs().transpose().x(), q.coeffs().transpose().y(), q.coeffs().transpose().z(), q.coeffs().transpose().w())
+
+    // Eigen::Matrix3d rotationMatrix1 = q_left.toRotationMatrix();
+    // ROS_WARN_STREAM(rotationMatrix1);
+    // Eigen::Matrix3d rotationMatrix1_compare = q_compare.toRotationMatrix();
+    // ROS_WARN_STREAM(rotationMatrix1_compare);
+    // ROS_ERROR("The final value is:%.16f,%.16f,%.16f,%.16f",q.x(),q.y,q.z,q.w);
 
     //
     //set pub rate
