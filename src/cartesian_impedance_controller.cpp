@@ -339,7 +339,7 @@ void CartesianImpedanceController::jointCommandCallback(
     }
   }
 
-  std::array<double, 16> F_T_EE = {0};  // NOLINT(readability-identifier-naming)
+  std::array<double, 16> F_T_EE = {0.7071,0.7071,0,0,-0.7071,0.7071,0,0,0,0,1,0.1034,0,0,0,1};  // NOLINT(readability-identifier-naming)
   std::array<double, 16> EE_T_K = {0};  // NOLINT(readability-identifier-naming)
   // F_T_EE.zero();
   std::array<double, 16> EEPose = model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
