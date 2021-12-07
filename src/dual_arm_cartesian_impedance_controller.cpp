@@ -104,7 +104,7 @@ namespace franka_controllers
         arm_data.cartesian_damping_.setZero();
         arm_data.tool_mass_ = tool_mass;
         arm_data.tool_vector_ = tool_vector;
-        // *arm_data.tool_vector_pointer_ = new std::array<double, 3>();
+        arm_data.tool_vector_pointer_ = new std::array<double, 3>();
         *arm_data.tool_vector_pointer_ = arm_data.tool_vector_;
         arm_data.customize_gravity_direction_ = customize_gravity_direction;
 
@@ -174,6 +174,16 @@ namespace franka_controllers
 
         bool left_success = initArm(robot_hw, left_arm_id_, left_joint_names, left_customize_gravity_direction, left_tool_mass, left_tool_vector);
         bool right_success = initArm(robot_hw, right_arm_id_, right_joint_names, right_customize_gravity_direction, right_tool_mass, right_tool_vector);
+        // if (left_success)
+        // {
+        //     ROS_ERROR("nothing wrong with the initArm");
+        //     /* code */
+        // }
+        // if (right_success)
+        // {
+        //     ROS_ERROR("nothing wrong  with the initArm");
+        //     /* code */
+        // }
 
         dynamic_reconfigure_compliance_param_node_ =
             ros::NodeHandle("dynamic_reconfigure_compliance_param_node");
@@ -215,6 +225,7 @@ namespace franka_controllers
         // Setup publisher for the centering frame.
         publish_rate_ = franka_hw::TriggerRate(30.0);
         center_frame_pub_.init(node_handle, "centering_frame", 1, true);
+        // ROS_ERROR("something wrong  after iniArm");
 
         return left_success && right_success;
     }
