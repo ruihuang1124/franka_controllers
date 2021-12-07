@@ -21,6 +21,7 @@
 #include <franka_hw/franka_model_interface.h>
 #include <franka_hw/franka_state_interface.h>
 #include <franka_hw/trigger_rate.h>
+#include <sensor_msgs/JointState.h>
 
 namespace franka_controllers
 {
@@ -61,6 +62,7 @@ namespace franka_controllers
         double tool_mass_;
         std::array<double, 3> tool_vector_;
         std::array<double, 3> *tool_vector_pointer_;
+        // std::mutex position_and_orientation_d_target_mutex_;
     };
 
     /**
@@ -176,6 +178,12 @@ namespace franka_controllers
 
         ///< Target pose subscriber
         ros::Subscriber sub_target_pose_left_;
+
+        ros::Subscriber sub_desired_joint_state_left_;
+        ros::Subscriber sub_desired_joint_state_right_;
+
+        void leftJointCommandCallback(const sensor_msgs::JointState_<std::allocator<void>>::ConstPtr &msg);
+        void rightJointCommandCallback(const sensor_msgs::JointState_<std::allocator<void>>::ConstPtr &msg);
 
         /**
    * Callback method that handles updates of the target poses.
