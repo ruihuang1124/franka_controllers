@@ -17,7 +17,7 @@
 #include <ros/time.h>
 #include <Eigen/Dense>
 
-#include <franka_example_controllers/dual_arm_compliance_paramConfig.h>
+#include "franka_controllers/dual_arm_compliance_paramConfig.h"
 #include <franka_hw/franka_model_interface.h>
 #include <franka_hw/franka_state_interface.h>
 #include <franka_hw/trigger_rate.h>
@@ -161,7 +161,7 @@ namespace franka_controllers
 
         ///< Dynamic reconfigure server
         std::unique_ptr<dynamic_reconfigure::Server<
-            franka_combined_example_controllers::dual_arm_compliance_paramConfig>>
+            franka_controllers::dual_arm_compliance_paramConfig>>
             dynamic_server_compliance_param_;
 
         ///< Nodehandle for the dynamic reconfigure namespace
@@ -173,7 +173,7 @@ namespace franka_controllers
    * @param[in] config Data container for configuration updates.
    */
         void complianceParamCallback(
-            franka_combined_example_controllers::dual_arm_compliance_paramConfig &config,
+            franka_controllers::dual_arm_compliance_paramConfig &config,
             uint32_t /*level*/);
 
         ///< Target pose subscriber

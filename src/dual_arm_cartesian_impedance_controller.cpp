@@ -189,7 +189,7 @@ namespace franka_controllers
             ros::NodeHandle("dynamic_reconfigure_compliance_param_node");
 
         dynamic_server_compliance_param_ = std::make_unique<dynamic_reconfigure::Server<
-            franka_combined_example_controllers::dual_arm_compliance_paramConfig>>(
+            franka_controllers::dual_arm_compliance_paramConfig>>(
             dynamic_reconfigure_compliance_param_node_);
 
         dynamic_server_compliance_param_->setCallback(boost::bind(
@@ -392,7 +392,7 @@ namespace franka_controllers
     }
 
     void DualArmCartesianImpedanceController::complianceParamCallback(
-        franka_combined_example_controllers::dual_arm_compliance_paramConfig &config,
+        franka_controllers::dual_arm_compliance_paramConfig &config,
         uint32_t /*level*/)
     {
         auto &left_arm_data = arms_data_.at(left_arm_id_);
