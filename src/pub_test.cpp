@@ -88,6 +88,9 @@ int main(int argc, char *argv[])
     Eigen::Quaterniond q_left(rotationMatrix_left);
     ROS_ERROR("left_arm rotation:x:%.16f,y:%.16f,z:%.16f,w:%.16f", q_left.coeffs().transpose().x(), q_left.coeffs().transpose().y(), q_left.coeffs().transpose().z(), q_left.coeffs().transpose().w());
     ROS_WARN_STREAM(q_left.coeffs().transpose());
+    Eigen::Quaterniond left_install_rotation(0.747283, -0.436865, 0.49775, 0.0544277);
+    Eigen::Matrix3d franka_install_rotation_matrix = left_install_rotation.toRotationMatrix();
+    ROS_WARN_STREAM(franka_install_rotation_matrix);
 
     rotation_right_1 << 0, 0, 1, 0,
         0, 1, 0, 0,
