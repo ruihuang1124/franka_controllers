@@ -20,22 +20,26 @@ int main(int argc, char *argv[])
     ros::Publisher pub_w = nh.advertise<geometry_msgs::PoseStamped>("/whole_body_controller/equilibrium_pose",10);
     ros::Publisher pub_mobile = nh.advertise<geometry_msgs::Twist>("/summit_xl/robotnik_base_control/cmd_vel", 10);
     //5 write pub logic and pub msg
+
+    ros::Publisher pub_w_left = nh.advertise<geometry_msgs::PoseStamped>("/left/desire_pose", 10);
+    ros::Publisher pub_w_right = nh.advertise<geometry_msgs::PoseStamped>("/right/desire_pose", 10);
     // create the pub msg
-    geometry_msgs::PoseStamped person;
-    // person.pose.position.x = 0.6327;
-    // person.pose.position.y = 0.0085;
-    // person.pose.position.z = 1.1152;
-    // person.pose.orientation.x = 0.9310;
-    // person.pose.orientatio n.y = -0.3644;
-    // person.pose.orientation.z = -0.0175;
-    // person.pose.orientation.w = 0.0142;
-    person.pose.position.x = 0.5525;
-    person.pose.position.y = 0.4208;
-    person.pose.position.z = 0.7;
-    person.pose.orientation.x = 0.2263;
-    person.pose.orientation.y = -0.5168;
-    person.pose.orientation.z = -0.0198;
-    person.pose.orientation.w = 0.8254;
+    geometry_msgs::PoseStamped left_target_pose,right_target_pose;
+    left_target_pose.pose.position.x = 0.5525;
+    left_target_pose.pose.position.y = 0.4208;
+    left_target_pose.pose.position.z = 0.7;
+    left_target_pose.pose.orientation.x = 0.2263;
+    left_target_pose.pose.orientation.y = -0.5168;
+    left_target_pose.pose.orientation.z = -0.0198;
+    left_target_pose.pose.orientation.w = 0.8254;
+
+    right_target_pose.pose.position.x = 0.5525;
+    right_target_pose.pose.position.y = 0.4208;
+    right_target_pose.pose.position.z = 0.7;
+    right_target_pose.pose.orientation.x = 0.2263;
+    right_target_pose.pose.orientation.y = -0.5168;
+    right_target_pose.pose.orientation.z = -0.0198;
+    right_target_pose.pose.orientation.w = 0.8254;
 
     geometry_msgs::Twist mobile_move_test;
     mobile_move_test.linear.x = -0.05;
@@ -186,15 +190,17 @@ int main(int argc, char *argv[])
 
     //
     //set pub rate
-    ros::Rate rate(6);
+    ros::Rate rate(10);
     //pub through loop
     while (ros::ok())
     {
         //change the date
         // main task: pub the msg
-        pub.publish(person);
-        pub_w.publish(person);
+        // pub.publish(left_target_pose);
+        // pub_w.publish(left_target_pose);
         // pub_mobile.publish(mobile_move_test);
+        pub_w_left.publish(left_target_pose);
+        pub_w_right.publish(right_target_pose);
         //sleep
         rate.sleep();
         //suggess to add:
