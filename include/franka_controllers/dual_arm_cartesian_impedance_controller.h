@@ -22,6 +22,7 @@
 #include <franka_hw/franka_state_interface.h>
 #include <franka_hw/trigger_rate.h>
 #include <sensor_msgs/JointState.h>
+#include <geometry_msgs/Twist.h>
 
 namespace franka_controllers
 {
@@ -37,7 +38,7 @@ namespace franka_controllers
         std::unique_ptr<franka_hw::FrankaModelHandle>
             model_handle_;                                           ///< To have access to e.g. jacobians.
         std::vector<hardware_interface::JointHandle> joint_handles_; ///< To command joint torques.
-        double filter_params_{0.005};                                ///< [-] PT1-Filter constant to smooth target values set
+        double filter_params_{0.001};                                ///< [-] PT1-Filter constant to smooth target values set
                                                                      ///< by dynamic reconfigure servers (stiffness/damping)
                                                                      ///< or interactive markers for the target poses.
         double nullspace_stiffness_{20.0};                           ///< [Nm/rad] To track the initial joint configuration in
@@ -184,6 +185,12 @@ namespace franka_controllers
 
         void leftJointCommandCallback(const sensor_msgs::JointState_<std::allocator<void>>::ConstPtr &msg);
         void rightJointCommandCallback(const sensor_msgs::JointState_<std::allocator<void>>::ConstPtr &msg);
+
+        ros::Subscriber sub_desired_pose_left_;
+        ros::Subscriber sub_desired_pose_right_;
+
+        void leftPoseCommandCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+        void rightPoseCommandCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
         /**
    * Callback method that handles updates of the target poses.
