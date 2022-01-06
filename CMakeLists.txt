@@ -29,7 +29,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Eigen3 REQUIRED)
 find_package(Franka 0.7.0 REQUIRED)
-find_package(matlogger2 REQUIRED)
 
 add_message_files(FILES
   JointTorqueComparison.msg
@@ -182,7 +181,7 @@ add_library(${PROJECT_NAME}
   src/joint_impedance_controller.cpp
   src/cartesian_impedance_controller.cpp
   src/dual_arm_cartesian_impedance_controller.cpp
-)
+        include/franka_controllers/dual_arm_joint_position_controller.h src/dual_arm_joint_position_controller.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

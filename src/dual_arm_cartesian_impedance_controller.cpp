@@ -581,7 +581,7 @@ namespace franka_controllers
         }
     }
 
-} // namespace franka_example_controllers
+} // namespace franka_controllers
 
 PLUGINLIB_EXPORT_CLASS(franka_controllers::DualArmCartesianImpedanceController,
                        controller_interface::ControllerBase)
