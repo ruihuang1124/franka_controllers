@@ -123,11 +123,11 @@ namespace franka_controllers
 
         sub_desired_joint_state_right_ = node_handle.subscribe("/right/desire_joint", 20, &DualArmCartesianImpedanceController::rightJointCommandCallback, this, ros::TransportHints().reliable().tcpNoDelay());
 
-        sub_desired_pose_left_ = node_handle.subscribe("/left/desire_pose", 30000, &DualArmCartesianImpedanceController::leftPoseCommandCallback,
+        sub_desired_pose_left_ = node_handle.subscribe("/left/desire_pose", 20, &DualArmCartesianImpedanceController::leftPoseCommandCallback,
                                                  this, ros::TransportHints().reliable().tcpNoDelay());
 
         sub_desired_pose_right_ =
-        node_handle.subscribe("/right/desire_pose", 30000, &DualArmCartesianImpedanceController::rightPoseCommandCallback, this,
+        node_handle.subscribe("/right/desire_pose", 20, &DualArmCartesianImpedanceController::rightPoseCommandCallback, this,
                             ros::TransportHints().reliable().tcpNoDelay());
         
         if (!node_handle.getParam("left/arm_id", left_arm_id_))
@@ -175,9 +175,9 @@ namespace franka_controllers
         std::array<double, 3> left_customize_gravity_direction = {0, 0, -9.81};
         std::array<double, 3> right_customize_gravity_direction = {0, 0, -9.81};
 
-        double left_tool_mass = 0.73, right_tool_mass = 0.0;
-        std::array<double, 3> left_tool_vector = {-0.00, 0.0, 0.00};
-        std::array<double, 3> right_tool_vector = {-0.00, 0.0, 0.00};
+        double left_tool_mass = 0.55, right_tool_mass = 0.28;
+        std::array<double, 3> left_tool_vector = {0.2, -0.2, 0.18};
+        std::array<double, 3> right_tool_vector = {0.1, -0.15, 0.2};
 
         bool left_success = initArm(robot_hw, left_arm_id_, left_joint_names, left_customize_gravity_direction, left_tool_mass, left_tool_vector);
         bool right_success = initArm(robot_hw, right_arm_id_, right_joint_names, right_customize_gravity_direction, right_tool_mass, right_tool_vector);
@@ -230,7 +230,7 @@ namespace franka_controllers
         tf::transformTFToEigen(transform, Ol_T_Or_); // NOLINT (readability-identifier-naming)
 
         // Setup publisher for the centering frame.
-        publish_rate_ = franka_hw::TriggerRate(30.0);
+        publish_rate_ = franka_hw::TriggerRate(10000.0);
         center_frame_pub_.init(node_handle, "centering_frame", 1, true);
         // ROS_ERROR("something wrong  after iniArm");
 
