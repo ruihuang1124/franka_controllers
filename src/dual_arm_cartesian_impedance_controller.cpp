@@ -125,6 +125,13 @@ namespace franka_controllers
 
         sub_desired_joint_state_right_ = node_handle.subscribe("/right/desire_joint", 20, &DualArmCartesianImpedanceController::rightJointCommandCallback, this, ros::TransportHints().reliable().tcpNoDelay());
 
+        sub_desired_pose_left_ = node_handle.subscribe("/left/desire_pose", 20, &DualArmCartesianImpedanceController::leftPoseCommandCallback,
+                                                 this, ros::TransportHints().reliable().tcpNoDelay());
+
+        sub_desired_pose_right_ =
+        node_handle.subscribe("/right/desire_pose", 20, &DualArmCartesianImpedanceController::rightPoseCommandCallback, this,
+                            ros::TransportHints().reliable().tcpNoDelay());
+        
         if (!node_handle.getParam("left/arm_id", left_arm_id_))
         {
             ROS_ERROR_STREAM(
@@ -225,7 +232,7 @@ namespace franka_controllers
         tf::transformTFToEigen(transform, Ol_T_Or_); // NOLINT (readability-identifier-naming)
 
         // Setup publisher for the centering frame.
-        publish_rate_ = franka_hw::TriggerRate(30.0);
+        publish_rate_ = franka_hw::TriggerRate(10000.0);
         center_frame_pub_.init(node_handle, "centering_frame", 1, true);
         // ROS_ERROR("something wrong  after iniArm");
 
@@ -371,7 +378,7 @@ namespace franka_controllers
 
 //        ROS_WARN_STREAM_THROTTLE(3, gravity_compensation);
         // Desired torque
-        tau_d << tau_task + tau_nullspace + coriolis + gravity_compensation;
+        tau_d << tau_task + tau_nullspace + coriolis;
         // Saturate torque rate to avoid discontinuities
         tau_d << saturateTorqueRate(arm_data, tau_d, tau_J_d);
         for (size_t i = 0; i < 7; ++i)
@@ -391,6 +398,9 @@ namespace franka_controllers
                                (1.0 - arm_data.filter_params_) * arm_data.position_d_;
         arm_data.orientation_d_ =
             arm_data.orientation_d_.slerp(arm_data.filter_params_, arm_data.orientation_d_target_);
+
+        // ROS_WARN_STREAM_THROTTLE(3, arm_data.position_d_target_);
+        
     }
 
     Eigen::Matrix<double, 7, 1> DualArmCartesianImpedanceController::saturateTorqueRate(
@@ -588,7 +598,7 @@ namespace franka_controllers
                 joint_velocity_cmd[i] = 0.;
             }
         }
-        std::array<double, 16> F_T_EE = {0.7071, 0.7071, 0, 0, -0.7071, 0.7071, 0, 0, 0, 0, 1, 0.1034, 0, 0, 0, 1}; // NOLINT(readability-identifier-naming)
+        std::array<double, 16> F_T_EE = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; // NOLINT(readability-identifier-naming)
         std::array<double, 16> EE_T_K = {0}; // NOLINT(readability-identifier-naming)
         // F_T_EE.zero();
         std::array<double, 16> EEPose = right_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
@@ -610,6 +620,32 @@ namespace franka_controllers
         auto ee_affine = affx::Affine(ee_pose);
         right_arm_data.impedance_motion_->setTarget(ee_affine);
         right_arm_data.position_d_target_  << right_arm_data.impedance_motion_->target.translation();
+    }
+
+    void DualArmCartesianImpedanceController::leftPoseCommandCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+    // ROS_WARN_STREAM("Received left arm target pose! Attention please! left will move to the target pose!!");
+    auto& left_arm_data = arms_data_.at(left_arm_id_);
+    // std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
+    left_arm_data.position_d_target_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
+    Eigen::Quaterniond last_orientation_d_target(left_arm_data.orientation_d_target_);
+    left_arm_data.orientation_d_target_.coeffs() << msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z,
+        msg->pose.orientation.w;
+    if (last_orientation_d_target.coeffs().dot(left_arm_data.orientation_d_target_.coeffs()) < 0.0) {
+      left_arm_data.orientation_d_target_.coeffs() << -left_arm_data.orientation_d_target_.coeffs();
+        }
+    }
+
+    void DualArmCartesianImpedanceController::rightPoseCommandCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+    // ROS_WARN_STREAM("Received right arm target pose! Attention please! right will move to the target pose!!");
+    auto& right_arm_data = arms_data_.at(right_arm_id_);
+    // std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
+    right_arm_data.position_d_target_ << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
+    Eigen::Quaterniond last_orientation_d_target(right_arm_data.orientation_d_target_);
+    right_arm_data.orientation_d_target_.coeffs() << msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z,
+        msg->pose.orientation.w;
+    if (last_orientation_d_target.coeffs().dot(right_arm_data.orientation_d_target_.coeffs()) < 0.0) {
+      right_arm_data.orientation_d_target_.coeffs() << -right_arm_data.orientation_d_target_.coeffs();
+        }
     }
 
 } // namespace franka_controllers

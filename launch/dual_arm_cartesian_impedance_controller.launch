@@ -8,6 +8,9 @@
   <arg name="rviz" default="true" />
   <arg name="rqt" default="true" />
 
+  <param name="robot_description"
+        textfile="$(find curiosity_description)/urdf/curiosity_tabletop_cartesio.urdf"/>
+
   <include file="$(find franka_control)/launch/franka_combined_control.launch" >
     <arg name="robot_id" value="$(arg robot_id)" />
     <arg name="robot_ips" value="$(arg robot_ips)" />
