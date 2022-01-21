@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
     ros::Publisher pub_w_right = nh.advertise<geometry_msgs::PoseStamped>("/right/desire_pose", 10);
     // create the pub msg
     sensor_msgs::JointState left_target_joint, right_target_joint;
-    left_target_joint.position = {0,1,2,3,4,5,6};
-    right_target_joint.position = {0,1,2,3,4,5,6};
+    // left_target_joint.position = {0,1,2,3,4,5,6};
+    right_target_joint.position = {-0.2984,0.6331,-0.4711,-0.5120,0.6123,2.4343,0.5819};
 
 //    left_target_joint.position[0] = 0;
 //    left_target_joint.position[1] = 0;
@@ -48,21 +48,21 @@ int main(int argc, char *argv[])
 
 
     geometry_msgs::PoseStamped left_target_pose,right_target_pose;
-    left_target_pose.pose.position.x = 0.5525;
-    left_target_pose.pose.position.y = 0.4208;
-    left_target_pose.pose.position.z = 0.7;
-    left_target_pose.pose.orientation.x = 0.2263;
-    left_target_pose.pose.orientation.y = -0.5168;
-    left_target_pose.pose.orientation.z = -0.0198;
-    left_target_pose.pose.orientation.w = 0.8254;
+    // left_target_pose.pose.position.x = 0.7029;
+    // left_target_pose.pose.position.y = -0.3473;
+    // left_target_pose.pose.position.z = 0.8224;
+    // left_target_pose.pose.orientation.x = 0.7625;
+    // left_target_pose.pose.orientation.y = -0.1643;
+    // left_target_pose.pose.orientation.z = 0.6202;
+    // left_target_pose.pose.orientation.w = 0.0836;
 
-    right_target_pose.pose.position.x = 0.5525;
-    right_target_pose.pose.position.y = 0.4208;
-    right_target_pose.pose.position.z = 0.7;
-    right_target_pose.pose.orientation.x = 0.2263;
-    right_target_pose.pose.orientation.y = -0.5168;
-    right_target_pose.pose.orientation.z = -0.0198;
-    right_target_pose.pose.orientation.w = 0.8254;
+    right_target_pose.pose.position.x = 0.7029;
+    right_target_pose.pose.position.y = -0.3473;
+    right_target_pose.pose.position.z = 0.8224;
+    right_target_pose.pose.orientation.x = 0.7625;
+    right_target_pose.pose.orientation.y = -0.1643;
+    right_target_pose.pose.orientation.z = 0.6202;
+    right_target_pose.pose.orientation.w = 0.0836;
 
     //set pub rate
     ros::Rate rate(10);
@@ -71,14 +71,14 @@ int main(int argc, char *argv[])
     while (ros::ok())
     {
 
-        right_target_pose.pose.position.x = 0.5525 * sin(2*t);
-        right_target_pose.pose.position.y = 0.4208 * cos(t);
+        // right_target_pose.pose.position.x = 0.5525 * sin(2*t);
+        // right_target_pose.pose.position.y = 0.4208 * cos(t);
 
-        pub_left.publish(left_target_joint);
+        // pub_left.publish(left_target_joint);
         pub_right.publish(right_target_joint);
-        pub_w_left.publish(left_target_pose);
-        pub_w_right.publish(right_target_pose);
-        t += 1/200;
+        // pub_w_left.publish(left_target_pose);
+        // pub_w_right.publish(right_target_pose);
+        // t += 1/200;
         //sleep
         rate.sleep();
         //suggess to add:

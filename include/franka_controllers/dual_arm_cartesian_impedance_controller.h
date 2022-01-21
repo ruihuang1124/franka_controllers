@@ -68,7 +68,7 @@ namespace franka_controllers
         std::array<double, 3> tool_vector_;
         std::array<double, 3> *tool_vector_pointer_;
         // std::mutex position_and_orientation_d_target_mutex_;
-        movex::ImpedanceMotion *impedance_motion_;
+        movex::ImpedanceMotion impedance_motion_;
     };
 
     /**

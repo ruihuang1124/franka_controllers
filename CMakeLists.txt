@@ -27,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
 )
 
-add_subdirectory(frankx)
+# add_subdirectory(frankx)
 
 find_package(Eigen3 REQUIRED)
 find_package(Franka 0.7.0 REQUIRED)
@@ -162,9 +162,9 @@ catkin_package(
 ## Specify additional locations of header files
 include_directories(
         include
-        frankx/include
-        frankx/affx/include
-        frankx/ruckig/include
+        /home/curi/curiosity/curiosity_ros/curiosity_frankx_interface/frankx/include
+        /home/curi/curiosity/curiosity_ros/curiosity_frankx_interface/frankx/affx/include
+        /home/curi/curiosity/curiosity_ros/curiosity_frankx_interface/frankx/ruckig/include
         ${catkin_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIRS}
 )
