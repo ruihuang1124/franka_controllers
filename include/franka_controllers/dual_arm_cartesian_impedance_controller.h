@@ -42,7 +42,7 @@ namespace franka_controllers
         std::unique_ptr<franka_hw::FrankaModelHandle>
             model_handle_;                                           ///< To have access to e.g. jacobians.
         std::vector<hardware_interface::JointHandle> joint_handles_; ///< To command joint torques.
-        double filter_params_{0.001};                                ///< [-] PT1-Filter constant to smooth target values set
+        double filter_params_{0.005};                                ///< [-] PT1-Filter constant to smooth target values set
                                                                      ///< by dynamic reconfigure servers (stiffness/damping)
                                                                      ///< or interactive markers for the target poses.
         double nullspace_stiffness_{20.0};                           ///< [Nm/rad] To track the initial joint configuration in

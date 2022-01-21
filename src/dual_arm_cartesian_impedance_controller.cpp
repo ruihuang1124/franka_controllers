@@ -365,13 +365,13 @@ namespace franka_controllers
             ROS_INFO_THROTTLE(2, "Current Joint states are: Joint1:%.4f, Joint2:%.4f, Joint3:%.4f, Joint4:%.4f, "
                                  "Joint5:%.4f, Joint6:%.4f, Joint7:%.4f",q[0],q[1],q[2],q[3],q[4],q[5],q[6]);
             ROS_INFO_THROTTLE(2,
-                              "Current end-effector for position and orientation for right arm under world frame is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, "
+                              "Current end-effector for position and orientation for left arm under world frame is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, "
                               "QY:%.4f, QZ:%.4f, QW:%.4f",
                               position(0), position(1), position(2),
                               orientation.x(), orientation.y(), orientation.z(),
                               orientation.w());
         } else{
-            ROS_INFO_THROTTLE(2, "Left arm!");
+            ROS_INFO_THROTTLE(2, "Right arm!");
         }
 
 
