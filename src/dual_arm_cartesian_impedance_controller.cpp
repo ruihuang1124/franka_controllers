@@ -545,11 +545,11 @@ namespace franka_controllers
                 joint_velocity_cmd[i] = 0.;
             }
         }
-
-
-
-        std::array<double, 16> F_T_EE = {0.7071, 0.7071, 0, 0, -0.7071, 0.7071, 0, 0, 0, 0, 1, 0.1034, 0, 0, 0, 1}; // NOLINT(readability-identifier-naming)
-        std::array<double, 16> EE_T_K = {}; // NOLINT(readability-identifier-naming)
+//        Eigen::Map<Eigen::Matrix<double, 16, 1>> F_T_EE(left_arm_data.state_handle_->getRobotState().F_T_EE.data());
+        std::array<double, 16> F_T_EE = left_arm_data.state_handle_->getRobotState().F_T_EE;
+        std::array<double, 16> EE_T_K = left_arm_data.state_handle_->getRobotState().EE_T_K;
+//        std::array<double, 16> F_T_EE = {0.7071, 0.7071, 0, 0, -0.7071, 0.7071, 0, 0, 0, 0, 1, 0.1034, 0, 0, 0, 1}; // NOLINT(readability-identifier-naming)
+//        std::array<double, 16> EE_T_K = {}; // NOLINT(readability-identifier-naming)
         // F_T_EE.zero();
         std::array<double, 16> EEPose = left_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
         // std::lock_guard<std::mutex> position_d_target_mutex_lock(left_arm_data.position_and_orientation_d_target_mutex_);
@@ -598,8 +598,8 @@ namespace franka_controllers
                 joint_velocity_cmd[i] = 0.;
             }
         }
-        std::array<double, 16> F_T_EE = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}; // NOLINT(readability-identifier-naming)
-        std::array<double, 16> EE_T_K = {0}; // NOLINT(readability-identifier-naming)
+        std::array<double, 16> F_T_EE = right_arm_data.state_handle_->getRobotState().F_T_EE;
+        std::array<double, 16> EE_T_K = right_arm_data.state_handle_->getRobotState().EE_T_K;
         // F_T_EE.zero();
         std::array<double, 16> EEPose = right_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
         // std::lock_guard<std::mutex> position_d_target_mutex_lock(right_arm_data.position_and_orientation_d_target_mutex_);
