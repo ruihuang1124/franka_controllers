@@ -27,6 +27,8 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
 )
 
+add_subdirectory(frankx)
+
 find_package(Eigen3 REQUIRED)
 find_package(Franka 0.7.0 REQUIRED)
 
@@ -158,11 +160,19 @@ catkin_package(
 ###########
 
 ## Specify additional locations of header files
-## Your package locations should be listed before other locations
 include_directories(
-include
-  ${catkin_INCLUDE_DIRS}
+        include
+        frankx/include
+        frankx/affx/include
+        frankx/ruckig/include
+        ${catkin_INCLUDE_DIRS}
+        ${EIGEN3_INCLUDE_DIRS}
 )
+## Your package locations should be listed before other locations
+#include_directories(
+#include
+#  ${catkin_INCLUDE_DIRS}
+#)
 
 ## Declare a C++ library
 # add_library(franka_controllers_src
@@ -181,7 +191,7 @@ add_library(${PROJECT_NAME}
   src/joint_impedance_controller.cpp
   src/cartesian_impedance_controller.cpp
   src/dual_arm_cartesian_impedance_controller.cpp
-        include/franka_controllers/dual_arm_joint_position_controller.h src/dual_arm_joint_position_controller.cpp)
+        include/franka_controllers/dual_arm_joint_position_controller.h src/dual_arm_joint_position_controller.cpp src/libfranka_test.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -193,6 +203,8 @@ add_library(${PROJECT_NAME}
 ## The recommended prefix ensures that target names across packages don't collide
 #add_executable(use_whole_body_controller src/use_whole_body_controller.cpp)
 add_executable(pub_test src/pub_test.cpp)
+add_executable(libfranka_test src/libfranka_test.cpp)
+add_executable(pub_target src/pub_target.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -213,11 +225,15 @@ add_dependencies(${PROJECT_NAME}
 
 #add_dependencies(use_whole_body_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(pub_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(libfranka_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(pub_target ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
+        frankx
+        Eigen3::Eigen
 )
 
 # target_link_libraries(mytarget matlogger2::matlogger2)
@@ -230,6 +246,16 @@ target_link_libraries(pub_test
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
+
+target_link_libraries(libfranka_test
+        ${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        )
+
+target_link_libraries(pub_target
+        ${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        )
 
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
   ${Franka_INCLUDE_DIRS}

@@ -22,6 +22,11 @@
 #include <franka_hw/franka_state_interface.h>
 #include <franka_hw/trigger_rate.h>
 #include <sensor_msgs/JointState.h>
+#include <frankx/frankx.hpp>
+#include <frankx/motion_generator.hpp>
+#include <movex/motion/motion_impedance.hpp>
+#include <movex/robot/motion_data.hpp>
+#include <movex/robot/robot_state.hpp>
 
 namespace franka_controllers
 {
@@ -63,6 +68,7 @@ namespace franka_controllers
         std::array<double, 3> tool_vector_;
         std::array<double, 3> *tool_vector_pointer_;
         // std::mutex position_and_orientation_d_target_mutex_;
+        movex::ImpedanceMotion *impedance_motion_;
     };
 
     /**

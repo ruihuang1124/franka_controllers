@@ -14,10 +14,10 @@
 #include <franka_hw/trigger_rate.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <pluginlib/class_list_macros.h>
-#include <ros/ros.h>
 #include <ros/transport_hints.h>
 #include <tf/transform_listener.h>
 #include <tf_conversions/tf_eigen.h>
+#include <utility>
 
 namespace franka_controllers
 {
@@ -107,6 +107,8 @@ namespace franka_controllers
         arm_data.tool_vector_pointer_ = new std::array<double, 3>();
         *arm_data.tool_vector_pointer_ = arm_data.tool_vector_;
         arm_data.customize_gravity_direction_ = customize_gravity_direction;
+        arm_data.impedance_motion_->is_active = true;
+
 
         arms_data_.emplace(std::make_pair(arm_id, std::move(arm_data)));
 
@@ -351,8 +353,23 @@ namespace franka_controllers
         Eigen::Map<Eigen::Matrix<double, 7, 1>> ng(normal_gravity_array.data());
         Eigen::Map<const Eigen::Matrix<double, 7, 1>> cg(customized_gravity_array.data());
         gravity_compensation = cg - ng;
+        if (arm_data.customize_gravity_direction_[1]>0)
+        {
+            ROS_INFO_THROTTLE(2, "Current Joint states are: Joint1:%.4f, Joint2:%.4f, Joint3:%.4f, Joint4:%.4f, "
+                                 "Joint5:%.4f, Joint6:%.4f, Joint7:%.4f",q[0],q[1],q[2],q[3],q[4],q[5],q[6]);
+            ROS_INFO_THROTTLE(2,
+                              "Current end-effector for position and orientation for right arm under world frame is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, "
+                              "QY:%.4f, QZ:%.4f, QW:%.4f",
+                              position(0), position(1), position(2),
+                              orientation.x(), orientation.y(), orientation.z(),
+                              orientation.w());
+        } else{
+            ROS_INFO_THROTTLE(2, "Left arm!");
+        }
 
-        ROS_WARN_STREAM_THROTTLE(3, gravity_compensation);
+
+
+//        ROS_WARN_STREAM_THROTTLE(3, gravity_compensation);
         // Desired torque
         tau_d << tau_task + tau_nullspace + coriolis + gravity_compensation;
         // Saturate torque rate to avoid discontinuities
@@ -518,12 +535,16 @@ namespace franka_controllers
                 joint_velocity_cmd[i] = 0.;
             }
         }
+
+
+
         std::array<double, 16> F_T_EE = {0.7071, 0.7071, 0, 0, -0.7071, 0.7071, 0, 0, 0, 0, 1, 0.1034, 0, 0, 0, 1}; // NOLINT(readability-identifier-naming)
-        std::array<double, 16> EE_T_K = {0}; // NOLINT(readability-identifier-naming)
+        std::array<double, 16> EE_T_K = {}; // NOLINT(readability-identifier-naming)
         // F_T_EE.zero();
         std::array<double, 16> EEPose = left_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
         // std::lock_guard<std::mutex> position_d_target_mutex_lock(left_arm_data.position_and_orientation_d_target_mutex_);
-        left_arm_data.position_d_target_ << EEPose[3], EEPose[7], EEPose[11];
+//        left_arm_data.position_d_target_ << EEPose[3], EEPose[7], EEPose[11];
+
 
         Eigen::Quaterniond last_orientation_d_target(left_arm_data.orientation_d_target_);
         Eigen::Matrix<double, 3, 3> rotationMatrix;
@@ -535,6 +556,11 @@ namespace franka_controllers
         {
             left_arm_data.orientation_d_target_.coeffs() << -left_arm_data.orientation_d_target_.coeffs();
         }
+
+        auto ee_pose = left_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
+        auto ee_affine = affx::Affine(ee_pose);
+        left_arm_data.impedance_motion_->setTarget(ee_affine);
+        left_arm_data.position_d_target_  << left_arm_data.impedance_motion_->target.translation();
     }
 
     void DualArmCartesianImpedanceController::rightJointCommandCallback(
@@ -567,7 +593,7 @@ namespace franka_controllers
         // F_T_EE.zero();
         std::array<double, 16> EEPose = right_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
         // std::lock_guard<std::mutex> position_d_target_mutex_lock(right_arm_data.position_and_orientation_d_target_mutex_);
-        right_arm_data.position_d_target_ << EEPose[3], EEPose[7], EEPose[11];
+//        right_arm_data.position_d_target_ << EEPose[3], EEPose[7], EEPose[11];
 
         Eigen::Quaterniond last_orientation_d_target(right_arm_data.orientation_d_target_);
         Eigen::Matrix<double, 3, 3> rotationMatrix;
@@ -579,6 +605,11 @@ namespace franka_controllers
         {
             right_arm_data.orientation_d_target_.coeffs() << -right_arm_data.orientation_d_target_.coeffs();
         }
+
+        auto ee_pose = right_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, joint_position_cmd, F_T_EE, EE_T_K);
+        auto ee_affine = affx::Affine(ee_pose);
+        right_arm_data.impedance_motion_->setTarget(ee_affine);
+        right_arm_data.position_d_target_  << right_arm_data.impedance_motion_->target.translation();
     }
 
 } // namespace franka_controllers
