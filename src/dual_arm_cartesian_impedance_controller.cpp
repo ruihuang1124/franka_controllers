@@ -174,8 +174,8 @@ namespace franka_controllers
             return false;
         }
         //TODO read these paramaters from rosparam:
-        std::array<double, 3> left_customize_gravity_direction = {7.7643666267395020, 5.8736524581909180, -1.2045484781265259};
-        std::array<double, 3> right_customize_gravity_direction = {7.7643666267395020, -5.8736524581909180, -1.2045484781265259};
+        std::array<double, 3> left_customize_gravity_direction = {7.5439190864562988,6.2554783821105957,-0.4408954679965973};
+        std::array<double, 3> right_customize_gravity_direction = {7.5439190864562988,-6.2554783821105957,-0.4408954679965973};
 
         double left_tool_mass = 0.73, right_tool_mass = 0.73;
         std::array<double, 3> left_tool_vector = {-0.01, 0.0, 0.03};
