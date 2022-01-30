@@ -121,9 +121,9 @@ namespace franka_controllers
         std::vector<double> cartesian_stiffness_vector;
         std::vector<double> cartesian_damping_vector;
 
-        sub_desired_joint_state_left_ = node_handle.subscribe("/left/desire_joint", 20, &DualArmCartesianImpedanceController::leftJointCommandCallback, this, ros::TransportHints().reliable().tcpNoDelay());
+        sub_desired_joint_state_left_ = node_handle.subscribe("/panda_left/joint_commands", 20, &DualArmCartesianImpedanceController::leftJointCommandCallback, this, ros::TransportHints().reliable().tcpNoDelay());
 
-        sub_desired_joint_state_right_ = node_handle.subscribe("/right/desire_joint", 20, &DualArmCartesianImpedanceController::rightJointCommandCallback, this, ros::TransportHints().reliable().tcpNoDelay());
+        sub_desired_joint_state_right_ = node_handle.subscribe("/panda_right/joint_commands", 20, &DualArmCartesianImpedanceController::rightJointCommandCallback, this, ros::TransportHints().reliable().tcpNoDelay());
 
         sub_desired_pose_left_ = node_handle.subscribe("/left/desire_pose", 20, &DualArmCartesianImpedanceController::leftPoseCommandCallback,
                                                  this, ros::TransportHints().reliable().tcpNoDelay());
@@ -173,6 +173,10 @@ namespace franka_controllers
                 "aborting controller init!");
             return false;
         }
+        upper_joint_position_warning_limits_ << 2.7, 1.6, 2.7, 0, 2.7, 3.6, 2.7;
+        lower_joint_position_warning_limits_ << -2.7,-1.6, -2.7, -2.9, -2.7, 0, -2.7;
+
+
         //TODO read these paramaters from rosparam:
         std::array<double, 3> left_customize_gravity_direction = {7.5439190864562988,6.2554783821105957,-0.4408954679965973};
         std::array<double, 3> right_customize_gravity_direction = {7.5439190864562988,-6.2554783821105957,-0.4408954679965973};
@@ -360,25 +364,37 @@ namespace franka_controllers
         Eigen::Map<Eigen::Matrix<double, 7, 1>> ng(normal_gravity_array.data());
         Eigen::Map<const Eigen::Matrix<double, 7, 1>> cg(customized_gravity_array.data());
         gravity_compensation = cg - ng;
-        if (arm_data.customize_gravity_direction_[1]<0)
-        {
-            ROS_INFO_THROTTLE(2, "Current Joint states are: Joint1:%.4f, Joint2:%.4f, Joint3:%.4f, Joint4:%.4f, "
-                                 "Joint5:%.4f, Joint6:%.4f, Joint7:%.4f",q[0],q[1],q[2],q[3],q[4],q[5],q[6]);
-            ROS_INFO_THROTTLE(2,
-                              "Current end-effector for position and orientation for Right arm under world frame is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, "
-                              "QY:%.4f, QZ:%.4f, QW:%.4f",
-                              position(0), position(1), position(2),
-                              orientation.x(), orientation.y(), orientation.z(),
-                              orientation.w());
-            ROS_INFO_THROTTLE(2,
-                              "The target ee pose is set as: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, "
-                              "QY:%.4f, QZ:%.4f, QW:%.4f",
-                              arm_data.position_d_target_(0), arm_data.position_d_target_(1), arm_data.position_d_target_(2),
-                              arm_data.orientation_d_target_.x(), arm_data.orientation_d_target_.y(), arm_data.orientation_d_target_.z(),
-                              arm_data.orientation_d_target_.w());
-        } else{
-            ROS_INFO_THROTTLE(2, "Left arm!");
-        }
+
+//         if (arm_data.customize_gravity_direction_[1]<0)
+//         {
+//             for (int i = 0; i < 7; i++) {
+//                 if (robot_state.q[i] < lower_joint_position_warning_limits_(i) || robot_state.q[i] > upper_joint_position_warning_limits_(i)){
+//                     ROS_ERROR_THROTTLE(1,"Joint %d of right arm is about to reach the limit!!",i);
+//                 }
+//             }
+//             ROS_INFO_THROTTLE(2, "Current Joint states of right arm are: Joint1:%.4f, Joint2:%.4f, Joint3:%.4f, Joint4:%.4f, "
+//                                  "Joint5:%.4f, Joint6:%.4f, Joint7:%.4f",q[0],q[1],q[2],q[3],q[4],q[5],q[6]);
+// //            ROS_INFO_THROTTLE(2,
+// //                              "Current end-effector for position and orientation for Right arm under world frame is: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, "
+// //                              "QY:%.4f, QZ:%.4f, QW:%.4f",
+// //                              position(0), position(1), position(2),
+// //                              orientation.x(), orientation.y(), orientation.z(),
+// //                              orientation.w());
+// //            ROS_INFO_THROTTLE(2,
+// //                              "The target ee pose is set as: x:%.4f, y:%.4f, z:%.4f, QX:%.4f, "
+// //                              "QY:%.4f, QZ:%.4f, QW:%.4f",
+// //                              arm_data.position_d_target_(0), arm_data.position_d_target_(1), arm_data.position_d_target_(2),
+// //                              arm_data.orientation_d_target_.x(), arm_data.orientation_d_target_.y(), arm_data.orientation_d_target_.z(),
+// //                              arm_data.orientation_d_target_.w());
+//         } else{
+//             for (int i = 0; i < 7; i++) {
+//                 if (robot_state.q[i] < lower_joint_position_warning_limits_(i) || robot_state.q[i] > upper_joint_position_warning_limits_(i)){
+//                     ROS_ERROR_THROTTLE(1,"Joint %d of right arm is about to reach the limit!!",i);
+//                 }
+//             }
+//             ROS_INFO_THROTTLE(2, "Current Joint states of Left arm are: Joint1:%.4f, Joint2:%.4f, Joint3:%.4f, Joint4:%.4f, "
+//                                  "Joint5:%.4f, Joint6:%.4f, Joint7:%.4f",q[0],q[1],q[2],q[3],q[4],q[5],q[6]);
+//         }
 
 
 
@@ -529,6 +545,7 @@ namespace franka_controllers
     void DualArmCartesianImpedanceController::leftJointCommandCallback(
         const sensor_msgs::JointState_<std::allocator<void>>::ConstPtr &msg)
     {
+        auto msg_left = msg;
         auto &left_arm_data = arms_data_.at(left_arm_id_);
         std::array<double, 7> joint_position_cmd{};
         std::array<double, 7> joint_velocity_cmd{};

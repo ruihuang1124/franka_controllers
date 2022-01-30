@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="robot_ip1" default="192.168.0.121" />
+  <arg name="robot_ip2" default="192.168.0.120"/>
+  <arg name="stop_at_shutdown" default="false" />
+  <arg name="arm_id1"      default="panda_1" />
+  <arg name="joint_names1" default="[$(arg arm_id1)_finger_joint1, $(arg arm_id1)_finger_joint2]" />
+  <arg name="arm_id2"      default="panda_2" />
+  <arg name="joint_names2" default="[$(arg arm_id2)_finger_joint1, $(arg arm_id2)_finger_joint2]" />
+
+  <node name="franka_gripper_1" pkg="franka_gripper" type="franka_gripper_node" output="screen">
+    <param name="robot_ip" value="$(arg robot_ip1)"/>
+    <param name="stop_at_shutdown" value="$(arg stop_at_shutdown)" />
+    <rosparam command="load" file="$(find franka_gripper)/config/franka_gripper_node.yaml" />
+    <rosparam param="joint_names" subst_value="true">$(arg joint_names1)</rosparam>
+  </node>
+
+    <node name="franka_gripper_2" pkg="franka_gripper" type="franka_gripper_node" output="screen">
+    <param name="robot_ip" value="$(arg robot_ip2)"/>
+    <param name="stop_at_shutdown" value="$(arg stop_at_shutdown)" />
+    <rosparam command="load" file="$(find franka_gripper)/config/franka_gripper_node.yaml" />
+    <rosparam param="joint_names" subst_value="true">$(arg joint_names2)</rosparam>
+  </node>
+
+</launch>

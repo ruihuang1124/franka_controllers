@@ -124,6 +124,8 @@ namespace franka_controllers
         ///< Rate to trigger publishing the current pose of the centering frame.
         franka_hw::TriggerRate publish_rate_;
 
+        Eigen::Matrix<double, 7, 1> upper_joint_position_warning_limits_, lower_joint_position_warning_limits_;
+
         /**
    * Saturates torque commands to ensure feasibility.
    *
