@@ -17,6 +17,7 @@
 #include <franka_hw/franka_cartesian_command_interface.h>
 #include <franka_hw/franka_model_interface.h>
 #include <franka_hw/trigger_rate.h>
+#include <Eigen/Dense>
 
 namespace franka_controllers {
 
@@ -55,6 +56,22 @@ class JointImpedanceController : public controller_interface::MultiInterfaceCont
   franka_hw::TriggerRate rate_trigger_{1.0};
   std::array<double, 7> last_tau_d_{};
   realtime_tools::RealtimePublisher<JointTorqueComparison> torques_publisher_;
+
+    //custimized_install_paramaters:
+    double tool_mass;
+    std::array<double, 3> tool_vector{};
+    bool tool_install = false;
+    bool customized_install = false;
+    std::array<double, 3> customized_gravity_direction{};
+    // If the robot is installed other than the default pose
+    bool *customized_install_;
+    std::array<double, 3> *customized_gravity_direction_;
+    std::array<double, 3> *gravity_earth_;
+    // If the robot is installed with tool:
+    bool *tool_install_;
+    double tool_mass_;
+    std::array<double, 3> *tool_vector_;
+
 };
 
 }  // namespace franka_controllers

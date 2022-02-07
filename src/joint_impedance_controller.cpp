@@ -16,6 +16,52 @@ namespace franka_controllers {
 bool JointImpedanceController::init(hardware_interface::RobotHW* robot_hw,
                                            ros::NodeHandle& node_handle) {
     std::string arm_id;
+
+    // If the franka is install in a customized way:
+    XmlRpc::XmlRpcValue customized_gravity_direction_args, tool_vector_args;
+    if (!node_handle.getParam("/customized_gravity_direction", customized_gravity_direction_args)) {
+        ROS_WARN_STREAM("Assuming the default robot install pose");
+    } else {
+        if (customized_gravity_direction_args.size() == customized_gravity_direction.size()) {
+//            ROS_WARN_STREAM("Using customized gravity direction " << customized_gravity_direction_args);
+            for (int i = 0; i < customized_gravity_direction_args.size(); ++i) {
+                customized_gravity_direction[i] = customized_gravity_direction_args[i];
+            }
+            customized_install = true;
+            customized_install_ = new bool(customized_install);
+            customized_gravity_direction_ = new std::array<double, 3>();
+            *customized_gravity_direction_ = customized_gravity_direction;
+            //check if a tool is install
+            if (!node_handle.getParam("/tool_mass",tool_mass) || !node_handle.getParam("/tool_vector",tool_vector_args)){
+                ROS_WARN_STREAM("Assuming the default robot tool values");
+                /* code */
+            }else{
+                if (tool_vector_args.size() == tool_vector.size()){
+//                    ROS_WARN_STREAM("Using customized tool! " << tool_vector_args);
+                    for (int j = 0; j < tool_vector_args.size(); ++j)
+                    {
+                        tool_vector[j] = tool_vector_args[j];
+                    }
+                    tool_install = true;
+                    tool_install_ = new bool(tool_install);
+                    tool_mass_ = tool_mass;
+                    tool_vector_ = new std::array<double, 3>();
+                    *tool_vector_ = tool_vector;
+                }else{
+                    ROS_ERROR_STREAM("Customized tool vector arg number "
+                                             << tool_vector_args.size()
+                                             << " does not match the requested number " << tool_vector.size()
+                    );
+                }
+            }
+        } else {
+            ROS_ERROR_STREAM("Customized gravity direction arg number "
+                                     << customized_gravity_direction_args.size()
+                                     << " does not match the requested number " << customized_gravity_direction.size()
+            );
+        }
+    }
+
     if (!node_handle.getParam("arm_id", arm_id)) {
     ROS_ERROR("JointImpedanceController: Could not read parameter arm_id");
     return false;
@@ -147,24 +193,54 @@ void JointImpedanceController::update(const ros::Time& /*time*/,
   double delta_z = radius_ * std::sin(angle_);
 
   std::array<double, 16> pose_desired = initial_pose_;
-  pose_desired[13] += delta_y;
-  pose_desired[14] += delta_z;
+//  pose_desired[13] += delta_y;
+//  pose_desired[14] += delta_z;
   cartesian_pose_handle_->setCommand(pose_desired);
 
   franka::RobotState robot_state = cartesian_pose_handle_->getRobotState();
   std::array<double, 7> coriolis = model_handle_->getCoriolis();
   std::array<double, 7> gravity = model_handle_->getGravity();
+//  Eigen::VectorXd gravity_compensation(7);
+  std::array<double, 7> gravity_compensation;
 
   double alpha = 0.99;
   for (size_t i = 0; i < 7; i++) {
     dq_filtered_[i] = (1 - alpha) * dq_filtered_[i] + alpha * robot_state.dq[i];
   }
 
+    //) check if customized install:
+    // DO NOT FORGET THE * BEFORE customized_install_
+    if (*customized_install_) {
+        if (*tool_install_){
+            // get the custimized gravity torque:
+            std::array<double, 7> normal_gravity_array = model_handle_->getGravity(robot_state.q,tool_mass_,*tool_vector_);
+            std::array<double, 7> customized_gravity_array = model_handle_->getGravity(robot_state.q,tool_mass_,*tool_vector_,customized_gravity_direction);
+//            Eigen::Map<Eigen::Matrix<double, 7, 1>> ng(normal_gravity_array.data());
+//            Eigen::Map<const Eigen::Matrix<double, 7, 1>> cg(customized_gravity_array.data());
+            for (int i = 0; i < 7; ++i) {
+                gravity_compensation[i] = customized_gravity_array[i] - normal_gravity_array[i];
+            }
+//            gravity_compensation = customized_gravity_array - normal_gravity_array;
+            ROS_INFO_THROTTLE(2,"customized_install and tool_install!");
+        }else{
+            std::array<double, 7> normal_gravity_array = model_handle_->getGravity();
+            std::array<double, 7> customized_gravity_array = model_handle_->getGravity(customized_gravity_direction);
+            for (int i = 0; i < 7; ++i) {
+                gravity_compensation[i] = customized_gravity_array[i] - normal_gravity_array[i];
+            }
+        }
+    } else {
+        for (int i = 0; i < 7; ++i) {
+            gravity_compensation[i] = 0;
+        }
+    }
+    ROS_WARN_STREAM_THROTTLE(3, gravity_compensation[0]);
+
   std::array<double, 7> tau_d_calculated;
   for (size_t i = 0; i < 7; ++i) {
     tau_d_calculated[i] = coriolis_factor_ * coriolis[i] +
                           k_gains_[i] * (robot_state.q_d[i] - robot_state.q[i]) +
-                          d_gains_[i] * (robot_state.dq_d[i] - dq_filtered_[i]);
+                          d_gains_[i] * (robot_state.dq_d[i] - dq_filtered_[i]) + gravity_compensation[i];
   }
 
   // Maximum torque difference with a sampling rate of 1 kHz. The maximum torque rate is
