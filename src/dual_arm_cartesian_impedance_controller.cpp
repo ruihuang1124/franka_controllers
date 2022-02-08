@@ -241,7 +241,7 @@ namespace franka_controllers
         //Initialize service to achieve curi arm swith function
         movetoHome_ = node_handle.advertiseService("/dual_panda/movetoHome", &DualArmCartesianImpedanceController::executemovetoHomeCB, this);
         ROS_INFO_STREAM("Advertising service /dual_panda/movetoHome");
-        controller_type_ = 2;
+        controller_type_ = 1;
 
         return left_success && right_success;
     }
@@ -269,6 +269,7 @@ namespace franka_controllers
         // set nullspace target configuration to initial q
         arm_data.q_d_nullspace_ = q_initial;
         arm_data.dq_d_nullspace_.setZero();
+        arm_data.q_d_nullspace_target_ = q_initial;
     }
 
     void DualArmCartesianImpedanceController::starting(const ros::Time & /*time*/)
@@ -420,10 +421,10 @@ namespace franka_controllers
         if (controller_type_ == 1)
         {
             tau_d << coriolis + arm_data.k_gains_*(arm_data.q_d_nullspace_ - q) + arm_data.d_gains_*(dq_d-arm_data.dq_d_nullspace_)+gravity_compensation;
-            ROS_WARN_STREAM("Joint impedance controller!");
+            ROS_INFO_THROTTLE(3,"Joint impedance controller!");
         }else{
             tau_d << tau_task + tau_nullspace + coriolis + gravity_compensation;
-            ROS_WARN_STREAM("Cartesian impedance controller!");
+            ROS_INFO_THROTTLE(3,"Cartesian impedance controller!");
         }
         tau_d << saturateTorqueRate(arm_data, tau_d, tau_J_d);
         for (size_t i = 0; i < 7; ++i)
@@ -443,6 +444,9 @@ namespace franka_controllers
                                (1.0 - arm_data.filter_params_) * arm_data.position_d_;
         arm_data.orientation_d_ =
             arm_data.orientation_d_.slerp(arm_data.filter_params_, arm_data.orientation_d_target_);
+        
+        arm_data.q_d_nullspace_ = arm_data.filter_params_ * arm_data.q_d_nullspace_target_ +
+                               (1.0 - arm_data.filter_params_) * arm_data.q_d_nullspace_;
 
 
         arm_data.k_gains_ = arm_data.filter_params_ * arm_data.k_gains_target_ +
@@ -613,7 +617,7 @@ namespace franka_controllers
         bool have_vel = (msg->velocity.size() == 7);
         for (size_t i = 0; i < msg->position.size(); ++i)
         {
-            left_arm_data.q_d_nullspace_(i) = msg->position[i];
+            left_arm_data.q_d_nullspace_target_(i) = msg->position[i];
             joint_position_cmd[i] = msg->position[i];
             if (have_vel)
             {
@@ -666,7 +670,7 @@ namespace franka_controllers
         bool have_vel = (msg->velocity.size() == 7);
         for (size_t i = 0; i < msg->position.size(); ++i)
         {
-            right_arm_data.q_d_nullspace_(i) = msg->position[i];
+            right_arm_data.q_d_nullspace_target_(i) = msg->position[i];
             joint_position_cmd[i] = msg->position[i];
             if (have_vel)
             {

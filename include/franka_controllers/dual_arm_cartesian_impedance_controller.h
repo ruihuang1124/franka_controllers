@@ -62,6 +62,7 @@ namespace franka_controllers
         Eigen::Matrix<double, 6, 6> cartesian_damping_;              ///< To damp cartesian motions.
         Eigen::Matrix<double, 6, 6> cartesian_damping_target_;       ///< Unfiltered raw value.
         Eigen::Matrix<double, 7, 1> q_d_nullspace_;                  ///< Target joint pose for nullspace
+        Eigen::Matrix<double, 7, 1> q_d_nullspace_target_;                  ///< Target joint pose for nullspace
         Eigen::Matrix<double, 7, 1> dq_d_nullspace_;                  ///< Target joint velocity for nullspace
                                                                      ///< motion. For now we track the
                                                                      ///< initial joint pose.

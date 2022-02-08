@@ -30,17 +30,19 @@ int main(int argc, char *argv[])
     //3 create ros nodehandle
     ros::NodeHandle nh;
     //4  create pub object
-    ros::Publisher pub_left_joint = nh.advertise<sensor_msgs::JointState>("/left/desire_joint", 10);
-    ros::Publisher pub_right_joint = nh.advertise<sensor_msgs::JointState>("/right/desire_joint", 10);
+    
+
+    ros::Publisher pub_left_joint = nh.advertise<sensor_msgs::JointState>("/panda_left/joint_commands", 100);
+    ros::Publisher pub_right_joint = nh.advertise<sensor_msgs::JointState>("/panda_right/joint_commands", 100);
     ros::Publisher pub_left_pose = nh.advertise<geometry_msgs::PoseStamped>("/left/desire_pose", 10);
     ros::Publisher pub_right_pose = nh.advertise<geometry_msgs::PoseStamped>("/right/desire_pose", 10);
     // create the pub msg
     sensor_msgs::JointState left_target_joint, right_target_joint;
 
     std::array<double,7> left_initial_joint_ = {-0.2984,0.6331,-0.4711,-0.5120,0.6123,2.4343,0.5819};
-    std::array<double,7> right_initial_joint_ = {-0.2984,0.6331,-0.4711,-0.5120,0.6123,2.4343,0.5819};
+    std::array<double,7> right_initial_joint_ = {-0.3953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
     std::array<double,7> left_target_joint_ = {0.2,-0.6331,0.3,0.1,0.1,0,0.4};
-    std::array<double,7> right_target_joint_ = {-0.2984,0.6331,-0.4711,-0.5120,0.6123,2.4343,0.5819};
+    std::array<double,7> right_target_joint_ = {-0.5953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
     left_target_joint.position = {left_initial_joint_[0],left_initial_joint_[1],left_initial_joint_[2],left_initial_joint_[3],left_initial_joint_[4],left_initial_joint_[5],left_initial_joint_[6]};
     right_target_joint.position = {right_initial_joint_[0],right_initial_joint_[1],right_initial_joint_[2],right_initial_joint_[3],right_initial_joint_[4],right_initial_joint_[5],right_initial_joint_[6]};
 
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
     right_target_pose.pose.orientation.w = 0.0836;
 
     //set pub rate
-    ros::Rate rate(2);
+    ros::Rate rate(30);
     double t = 0;
     int count_left = 0;
     bool left_finish= false;
@@ -65,7 +67,7 @@ int main(int argc, char *argv[])
 
     int count_right = 0;
     bool right_finish= false;
-    int right_point_number = 100;
+    int right_point_number = 500;
 
     //pub through loop
     while (ros::ok() && count_right <= right_point_number - 1 && count_left <= left_point_number - 1)
