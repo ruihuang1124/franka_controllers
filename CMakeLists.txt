@@ -36,6 +36,12 @@ add_message_files(FILES
   JointTorqueComparison.msg
 )
 
+add_service_files(
+  FILES 
+  movetoHome.srv
+  switchController.srv
+)
+
 generate_messages()
 
 generate_dynamic_reconfigure_options(
@@ -162,9 +168,9 @@ catkin_package(
 ## Specify additional locations of header files
 include_directories(
         include
-        /home/curi/curiosity/curiosity_ros/curiosity_frankx_interface/frankx/include
-        /home/curi/curiosity/curiosity_ros/curiosity_frankx_interface/frankx/affx/include
-        /home/curi/curiosity/curiosity_ros/curiosity_frankx_interface/frankx/ruckig/include
+        /home/${USER}/tools/frankx/include
+        /home/${USER}/tools/frankx/affx/include
+        /home/${USER}/tools/frankx/ruckig/include
         ${catkin_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIRS}
 )
@@ -205,6 +211,7 @@ add_library(${PROJECT_NAME}
 add_executable(pub_test src/pub_test.cpp)
 add_executable(libfranka_test src/libfranka_test.cpp)
 add_executable(pub_target src/pub_target.cpp)
+add_executable(pub_trajectory_test src/pub_trajectory_test.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -227,6 +234,7 @@ add_dependencies(${PROJECT_NAME}
 add_dependencies(pub_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(libfranka_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(pub_target ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(pub_trajectory_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
@@ -253,6 +261,11 @@ target_link_libraries(libfranka_test
         )
 
 target_link_libraries(pub_target
+        ${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        )
+
+target_link_libraries(pub_trajectory_test
         ${PROJECT_NAME}
         ${catkin_LIBRARIES}
         )

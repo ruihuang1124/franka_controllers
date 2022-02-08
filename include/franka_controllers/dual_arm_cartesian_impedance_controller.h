@@ -27,6 +27,8 @@
 #include <movex/motion/motion_impedance.hpp>
 #include <movex/robot/motion_data.hpp>
 #include <movex/robot/robot_state.hpp>
+#include <franka_controllers/movetoHome.h>
+#include <franka_controllers/switchController.h>
 
 namespace franka_controllers
 {
@@ -53,9 +55,14 @@ namespace franka_controllers
                                                                      ///< feasible commands.
         Eigen::Matrix<double, 6, 6> cartesian_stiffness_;            ///< To track the target pose.
         Eigen::Matrix<double, 6, 6> cartesian_stiffness_target_;     ///< Unfiltered raw value.
+        Eigen::Matrix<double, 7, 7> k_gains_target_;            ///< To track the target pose.
+        Eigen::Matrix<double, 7, 7> d_gains_target_;     ///< Unfiltered raw value.
+        Eigen::Matrix<double, 7, 7> k_gains_;            ///< To track the target pose.
+        Eigen::Matrix<double, 7, 7> d_gains_;     ///< Unfiltered raw value.
         Eigen::Matrix<double, 6, 6> cartesian_damping_;              ///< To damp cartesian motions.
         Eigen::Matrix<double, 6, 6> cartesian_damping_target_;       ///< Unfiltered raw value.
         Eigen::Matrix<double, 7, 1> q_d_nullspace_;                  ///< Target joint pose for nullspace
+        Eigen::Matrix<double, 7, 1> dq_d_nullspace_;                  ///< Target joint velocity for nullspace
                                                                      ///< motion. For now we track the
                                                                      ///< initial joint pose.
         Eigen::Vector3d position_d_;                                 ///< Target position of the end effector.
@@ -210,6 +217,19 @@ namespace franka_controllers
    * Publishes a Pose Stamped for visualization of the current centering pose.
    */
         void publishCenteringPose();
+        ros::ServiceServer switchController_;
+        bool executeswitchControllerCb(franka_controllers::switchController::Request& req,
+                                       franka_controllers::switchController::Response& res);
+
+        ros::ServiceServer movetoHome_;
+        bool executemovetoHomeCB(franka_controllers::movetoHome::Request& req,
+                                franka_controllers::movetoHome::Response& res);
+
+        ros::Publisher left_arm_state_publisher_,right_arm_state_publisher_;
+
+        double alpha = 0.99;
+        int controller_type_;
+
     };
 
 } // namespace franka_example_controllers

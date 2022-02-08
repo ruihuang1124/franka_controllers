@@ -102,6 +102,9 @@ namespace franka_controllers
 
         arm_data.cartesian_stiffness_.setZero();
         arm_data.cartesian_damping_.setZero();
+
+        arm_data.k_gains_.setZero();
+        arm_data.d_gains_.setZero();
         arm_data.tool_mass_ = tool_mass;
         arm_data.tool_vector_ = tool_vector;
         arm_data.tool_vector_pointer_ = new std::array<double, 3>();
@@ -187,16 +190,6 @@ namespace franka_controllers
 
         bool left_success = initArm(robot_hw, left_arm_id_, left_joint_names, left_customize_gravity_direction, left_tool_mass, left_tool_vector);
         bool right_success = initArm(robot_hw, right_arm_id_, right_joint_names, right_customize_gravity_direction, right_tool_mass, right_tool_vector);
-        // if (left_success)
-        // {
-        //     ROS_ERROR("nothing wrong with the initArm");
-        //     /* code */
-        // }
-        // if (right_success)
-        // {
-        //     ROS_ERROR("nothing wrong  with the initArm");
-        //     /* code */
-        // }
 
         dynamic_reconfigure_compliance_param_node_ =
             ros::NodeHandle("dynamic_reconfigure_compliance_param_node");
@@ -240,6 +233,16 @@ namespace franka_controllers
         center_frame_pub_.init(node_handle, "centering_frame", 1, true);
         // ROS_ERROR("something wrong  after iniArm");
 
+        //Initialize service to achieve curi stop control
+        switchController_ = node_handle.advertiseService("/dual_panda/switch_controller",
+                                                         &DualArmCartesianImpedanceController::executeswitchControllerCb, this);
+        ROS_INFO_STREAM("Advertising service /dual_panda/switch_controller");
+
+        //Initialize service to achieve curi arm swith function
+        movetoHome_ = node_handle.advertiseService("/dual_panda/movetoHome", &DualArmCartesianImpedanceController::executemovetoHomeCB, this);
+        ROS_INFO_STREAM("Advertising service /dual_panda/movetoHome");
+        controller_type_ = 2;
+
         return left_success && right_success;
     }
 
@@ -265,6 +268,7 @@ namespace franka_controllers
 
         // set nullspace target configuration to initial q
         arm_data.q_d_nullspace_ = q_initial;
+        arm_data.dq_d_nullspace_.setZero();
     }
 
     void DualArmCartesianImpedanceController::starting(const ros::Time & /*time*/)
@@ -315,6 +319,7 @@ namespace franka_controllers
         Eigen::Map<Eigen::Matrix<double, 6, 7>> jacobian(jacobian_array.data());
         Eigen::Map<Eigen::Matrix<double, 7, 1>> q(robot_state.q.data());
         Eigen::Map<Eigen::Matrix<double, 7, 1>> dq(robot_state.dq.data());
+        Eigen::Map<Eigen::Matrix<double, 7, 1>> dq_d(robot_state.dq_d.data());
         Eigen::Map<Eigen::Matrix<double, 7, 1>> tau_J_d( // NOLINT (readability-identifier-naming)
             robot_state.tau_J_d.data());
         Eigen::Affine3d transform(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
@@ -340,7 +345,7 @@ namespace franka_controllers
 
         // compute control
         // allocate variables
-        Eigen::VectorXd tau_task(7), tau_nullspace(7), tau_d(7), gravity_compensation(7);
+        Eigen::VectorXd tau_task(7), tau_nullspace(7), tau_d(7), gravity_compensation(7), tau_joint_impedance(7);
 
         // pseudoinverse for nullspace handling
         // kinematic pseuoinverse
@@ -400,8 +405,26 @@ namespace franka_controllers
 
 //        ROS_WARN_STREAM_THROTTLE(3, gravity_compensation);
         // Desired torque
-        tau_d << tau_task + tau_nullspace + coriolis + gravity_compensation;
+//        std::array<double, 7> tau_d_calculated;
+//        for (size_t i = 0; i < 7; ++i) {
+//            tau_d_calculated[i] = coriolis_factor_ * coriolis[i] +
+//                                  k_gains_target_[i] * (robot_state.q_d[i] - robot_state.q[i]) +
+//                                  d_gains_target_[i] * (robot_state.dq_d[i] - dq_filtered_[i]) + gravity_compensation[i];
+//        }
+        arm_data.dq_d_nullspace_ = (1-alpha) * arm_data.dq_d_nullspace_ + alpha*dq_d;
+
+//        tau_d << tau_task + tau_nullspace + coriolis + gravity_compensation;
+//        tau_joint_impedance << coriolis + arm_data.k_gains_*(arm_data.q_d_nullspace_ - q) + arm_data.d_gains_*(dq_d-arm_data.dq_d_nullspace_)+gravity_compensation;
         // Saturate torque rate to avoid discontinuities
+
+        if (controller_type_ == 1)
+        {
+            tau_d << coriolis + arm_data.k_gains_*(arm_data.q_d_nullspace_ - q) + arm_data.d_gains_*(dq_d-arm_data.dq_d_nullspace_)+gravity_compensation;
+            ROS_WARN_STREAM("Joint impedance controller!");
+        }else{
+            tau_d << tau_task + tau_nullspace + coriolis + gravity_compensation;
+            ROS_WARN_STREAM("Cartesian impedance controller!");
+        }
         tau_d << saturateTorqueRate(arm_data, tau_d, tau_J_d);
         for (size_t i = 0; i < 7; ++i)
         {
@@ -420,6 +443,13 @@ namespace franka_controllers
                                (1.0 - arm_data.filter_params_) * arm_data.position_d_;
         arm_data.orientation_d_ =
             arm_data.orientation_d_.slerp(arm_data.filter_params_, arm_data.orientation_d_target_);
+
+
+        arm_data.k_gains_ = arm_data.filter_params_ * arm_data.k_gains_target_ +
+                                        (1.0 - arm_data.filter_params_) * arm_data.k_gains_target_;
+        arm_data.d_gains_ = arm_data.filter_params_ * arm_data.d_gains_target_ +
+                            (1.0 - arm_data.filter_params_) * arm_data.d_gains_target_;
+
 
         // ROS_WARN_STREAM_THROTTLE(3, arm_data.position_d_target_);
         
@@ -458,6 +488,19 @@ namespace franka_controllers
             << 2 * sqrt(config.left_rotational_stiffness) * Eigen::Matrix3d::Identity();
         left_arm_data.nullspace_stiffness_target_ = config.left_nullspace_stiffness;
 
+        left_arm_data.k_gains_target_.setIdentity();
+        left_arm_data.k_gains_target_.topLeftCorner(4, 4) << config.left_k_gains_1234 * Eigen::Matrix4d::Identity();
+        left_arm_data.k_gains_target_(4, 4) = config.left_k_gains_5;
+        left_arm_data.k_gains_target_(5, 5) = config.left_k_gains_6;
+        left_arm_data.k_gains_target_(6, 6) = config.left_k_gains_7;
+
+        left_arm_data.d_gains_target_.setIdentity();
+        left_arm_data.d_gains_target_.topLeftCorner(4, 4) << config.left_d_gains_1234 * Eigen::Matrix4d::Identity();
+        left_arm_data.d_gains_target_(4, 4) = config.left_d_gains_5;
+        left_arm_data.d_gains_target_(5, 5) = config.left_d_gains_6;
+        left_arm_data.d_gains_target_(6, 6) = config.left_d_gains_7;
+
+
         auto &right_arm_data = arms_data_.at(right_arm_id_);
         right_arm_data.cartesian_stiffness_target_.setIdentity();
         right_arm_data.cartesian_stiffness_target_.topLeftCorner(3, 3)
@@ -471,6 +514,19 @@ namespace franka_controllers
         right_arm_data.cartesian_damping_target_.bottomRightCorner(3, 3)
             << 2 * sqrt(config.right_rotational_stiffness) * Eigen::Matrix3d::Identity();
         right_arm_data.nullspace_stiffness_target_ = config.right_nullspace_stiffness;
+
+        right_arm_data.k_gains_target_.setIdentity();
+        right_arm_data.k_gains_target_.topLeftCorner(4, 4) << config.right_k_gains_1234 * Eigen::Matrix4d::Identity();
+        right_arm_data.k_gains_target_(4, 4) = config.right_k_gains_5;
+        right_arm_data.k_gains_target_(5, 5) = config.right_k_gains_6;
+        right_arm_data.k_gains_target_(6, 6) = config.right_k_gains_7;
+
+        right_arm_data.d_gains_target_.setIdentity();
+        right_arm_data.d_gains_target_.topLeftCorner(4, 4) << config.right_d_gains_1234 * Eigen::Matrix4d::Identity();
+        right_arm_data.d_gains_target_(4, 4) = config.right_d_gains_5;
+        right_arm_data.d_gains_target_(5, 5) = config.right_d_gains_6;
+        right_arm_data.d_gains_target_(6, 6) = config.right_d_gains_7;
+
     }
 
     void DualArmCartesianImpedanceController::targetPoseCallback(
@@ -669,6 +725,34 @@ namespace franka_controllers
     if (last_orientation_d_target.coeffs().dot(right_arm_data.orientation_d_target_.coeffs()) < 0.0) {
       right_arm_data.orientation_d_target_.coeffs() << -right_arm_data.orientation_d_target_.coeffs();
         }
+    }
+
+    bool DualArmCartesianImpedanceController::executeswitchControllerCb(franka_controllers::switchController::Request &req,
+                                                                        franka_controllers::switchController::Response &res){
+
+        auto& left_arm_data = arms_data_.at(left_arm_id_);
+        auto& right_arm_data = arms_data_.at(right_arm_id_);
+        if (strcmp(req.controllerType.c_str(), "joint_impedance") == 0)
+        {
+            controller_type_ = 1;
+            ROS_WARN_STREAM("Switching to Joint Impedance Controller");
+            res.finishSwitchController = true;
+        }else if(strcmp(req.controllerType.c_str(), "cartesian_impedance") == 0){
+            controller_type_ = 2;
+            res.finishSwitchController = true;
+            ROS_WARN_STREAM("Switching to Cartesian Impedance Controller");
+        }else{
+            res.finishSwitchController = false;
+            ROS_WARN_STREAM("Invalid Controller Type!!!");
+        }
+        return true;
+    }
+
+    bool DualArmCartesianImpedanceController::executemovetoHomeCB(franka_controllers::movetoHome::Request &req,
+                                                                  franka_controllers::movetoHome::Response &res) {
+        auto& left_arm_data = arms_data_.at(left_arm_id_);
+        auto& right_arm_data = arms_data_.at(right_arm_id_);
+        return true;
     }
 
 } // namespace franka_controllers
