@@ -766,7 +766,7 @@ namespace franka_controllers
             if (left_createTrajectoryclient_.call(left_srv)){
                 ROS_INFO("Succeed call the left arm trajectory create service");
             } else{
-                ROS_ERROR("panda_left/create_trajectory srv is not exit!!");
+                ROS_ERROR("/panda_left/create_trajectory srv is not exit!!");
             }
         } else if (strcmp(req.arm.c_str(), "right") == 0){
             franka_controllers::createTrajectory right_srv;
@@ -774,10 +774,10 @@ namespace franka_controllers
                 right_srv.request.currentJoint[i] = right_arm_data.state_handle_->getRobotState().q[i];
             }
             right_srv.request.targetPoint = req.targetPoint;
-            if (left_createTrajectoryclient_.call(right_srv)){
+            if (right_createTrajectoryclient_.call(right_srv)){
                 ROS_INFO("Succeed call the right arm trajectory create service");
             } else{
-                ROS_ERROR("panda_right/create_trajectory srv is not exit!!");
+                ROS_ERROR("/panda_right/create_trajectory srv is not exit!!");
             }
         } else if (strcmp(req.arm.c_str(), "dual") == 0){
             franka_controllers::createTrajectory left_srv;
@@ -795,7 +795,7 @@ namespace franka_controllers
                 right_srv.request.currentJoint[i] = right_arm_data.state_handle_->getRobotState().q[i];
             }
             right_srv.request.targetPoint = req.targetPoint;
-            if (left_createTrajectoryclient_.call(right_srv)){
+            if (right_createTrajectoryclient_.call(right_srv)){
                 ROS_INFO("Succeed call the right arm trajectory create service");
             } else{
                 ROS_ERROR("/panda_right/create_trajectory srv is not exit!!");

@@ -17,10 +17,10 @@ class multiThreadService
 public:
     multiThreadService()
     {
-        left_home_joint_ = {-0.5953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
-        left_end_joint_ = {-0.3953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
-        right_end_joint_ = {-0.5953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
-        right_home_joint_ = {-0.5953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
+        left_home_joint_ = {0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753};
+        left_end_joint_ = {0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753};
+        right_end_joint_ = {-0.7780238883788124, 0.6200491727611475, 0.3834831916341185, -0.46359594027604656, -0.43295345889197445, 2.40979893658763, 0.8452322907588546};
+        right_home_joint_ = {-0.7780238883788124, 0.6200491727611475, 0.3834831916341185, -0.46359594027604656, -0.43295345889197445, 2.40979893658763, 0.8452322907588546};
         nh.getParam("/left_home_rate",left_home_rate_);
         nh.getParam("/left_home_point_number",left_home_point_number_);
         nh.getParam("/left_end_rate",left_end_rate_);
@@ -81,10 +81,10 @@ public:
                 right_end_go_ = true;
             }
         }
-        right_execute_joint_.position = {0,1,2,3,4,5,6};
-        left_execute_joint_.position = {0,1,2,3,4,5,6};
-        right_initial_joint_ = {-0.3953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
-        left_initial_joint_ = {-0.3953118697914385, 0.6048431257545822, 1.2013794286711174, -0.496927088854604, -0.510635128683514, 2.0358033652463656, 0.5499528228394175};
+        right_execute_joint_.position = {-0.7780238883788124, 0.6200491727611475, 0.3834831916341185, -0.46359594027604656, -0.43295345889197445, 2.40979893658763, 0.8452322907588546};
+        left_execute_joint_.position = {0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753};
+        right_initial_joint_ = {-0.7780238883788124, 0.6200491727611475, 0.3834831916341185, -0.46359594027604656, -0.43295345889197445, 2.40979893658763, 0.8452322907588546};
+        left_initial_joint_ = {0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753};
         pub_right_joint_ = nh.advertise<sensor_msgs::JointState>("/panda_right/joint_commands", left_command_quene_size_);
         pub_left_joint_ = nh.advertise<sensor_msgs::JointState>("/panda_left/joint_commands", right_command_quene_size_);
         pandaLeftSrv = nh.advertiseService("/panda_left/create_trajectory",&multiThreadService::pandaLeftCB, this);
@@ -144,6 +144,7 @@ bool multiThreadService::pandaLeftCB(franka_controllers::createTrajectory::Reque
         res.finishPublishCommand = true;
         return true;
     } else{
+        ROS_INFO("Receive target Point: [%s] for Left arm!", req.targetPoint.c_str());
         ROS_WARN("Invilid target position name, please check!!");
         return false;
     }
@@ -184,6 +185,7 @@ bool multiThreadService::pandaRightCB(franka_controllers::createTrajectory::Requ
         res.finishPublishCommand = true;
         return true;
     } else{
+        ROS_INFO("Receive target Point: [%s] for Left arm!", req.targetPoint.c_str());
         ROS_WARN("Invilid target position name, please check!!");
         return false;
     }
