@@ -40,6 +40,7 @@ add_service_files(
   FILES 
   movetoHome.srv
   switchController.srv
+  createTrajectory.srv
 )
 
 generate_messages()

@@ -29,6 +29,7 @@
 #include <movex/robot/robot_state.hpp>
 #include <franka_controllers/movetoHome.h>
 #include <franka_controllers/switchController.h>
+#include <franka_controllers/createTrajectory.h>
 
 namespace franka_controllers
 {
@@ -230,6 +231,8 @@ namespace franka_controllers
 
         double alpha = 0.99;
         int controller_type_;
+        ros::ServiceClient left_createTrajectoryclient_;
+        ros::ServiceClient right_createTrajectoryclient_;
 
     };
 

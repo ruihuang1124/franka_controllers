@@ -1,0 +1,5 @@
+<launch>
+    <rosparam file="$(find franka_controllers)/config/franka_target_joint.yaml" command="load"/>
+    <node pkg="franka_controllers" type="pub_trajectory_test" name="panda_trajectory_generator" output="screen">
+    </node>
+</launch>

@@ -242,7 +242,8 @@ namespace franka_controllers
         movetoHome_ = node_handle.advertiseService("/dual_panda/movetoHome", &DualArmCartesianImpedanceController::executemovetoHomeCB, this);
         ROS_INFO_STREAM("Advertising service /dual_panda/movetoHome");
         controller_type_ = 1;
-
+        left_createTrajectoryclient_ = node_handle.serviceClient<franka_controllers::createTrajectory>("/panda_left/create_trajectory");
+        right_createTrajectoryclient_ = node_handle.serviceClient<franka_controllers::createTrajectory>("/panda_right/create_trajectory");
         return left_success && right_success;
     }
 
@@ -756,6 +757,54 @@ namespace franka_controllers
                                                                   franka_controllers::movetoHome::Response &res) {
         auto& left_arm_data = arms_data_.at(left_arm_id_);
         auto& right_arm_data = arms_data_.at(right_arm_id_);
+        if (strcmp(req.arm.c_str(), "left") == 0){
+            franka_controllers::createTrajectory left_srv;
+            for (int i = 0; i < 7; ++i) {
+                left_srv.request.currentJoint[i] = left_arm_data.state_handle_->getRobotState().q[i];
+            }
+            left_srv.request.targetPoint = req.targetPoint;
+            if (left_createTrajectoryclient_.call(left_srv)){
+                ROS_INFO("Succeed call the left arm trajectory create service");
+            } else{
+                ROS_ERROR("panda_left/create_trajectory srv is not exit!!");
+            }
+        } else if (strcmp(req.arm.c_str(), "right") == 0){
+            franka_controllers::createTrajectory right_srv;
+            for (int i = 0; i < 7; ++i) {
+                right_srv.request.currentJoint[i] = right_arm_data.state_handle_->getRobotState().q[i];
+            }
+            right_srv.request.targetPoint = req.targetPoint;
+            if (left_createTrajectoryclient_.call(right_srv)){
+                ROS_INFO("Succeed call the right arm trajectory create service");
+            } else{
+                ROS_ERROR("panda_right/create_trajectory srv is not exit!!");
+            }
+        } else if (strcmp(req.arm.c_str(), "dual") == 0){
+            franka_controllers::createTrajectory left_srv;
+            franka_controllers::createTrajectory right_srv;
+            for (int i = 0; i < 7; ++i) {
+                left_srv.request.currentJoint[i] = left_arm_data.state_handle_->getRobotState().q[i];
+            }
+            left_srv.request.targetPoint = req.targetPoint;
+            if (left_createTrajectoryclient_.call(left_srv)){
+                ROS_INFO("Succeed call the left arm trajectory create service");
+            } else{
+                ROS_ERROR("/panda_left/create_trajectory srv is not exit!!");
+            }
+            for (int i = 0; i < 7; ++i) {
+                right_srv.request.currentJoint[i] = right_arm_data.state_handle_->getRobotState().q[i];
+            }
+            right_srv.request.targetPoint = req.targetPoint;
+            if (left_createTrajectoryclient_.call(right_srv)){
+                ROS_INFO("Succeed call the right arm trajectory create service");
+            } else{
+                ROS_ERROR("/panda_right/create_trajectory srv is not exit!!");
+            }
+
+        } else{
+            ROS_WARN("Invilad arm name!");
+        }
+
         return true;
     }
 
