@@ -739,10 +739,35 @@ namespace franka_controllers
         auto& right_arm_data = arms_data_.at(right_arm_id_);
         if (strcmp(req.controllerType.c_str(), "joint_impedance") == 0)
         {
+            for (int i = 0; i < 7; ++i) {
+                left_arm_data.q_d_nullspace_target_[i] = left_arm_data.state_handle_->getRobotState().q[i];
+                right_arm_data.q_d_nullspace_target_[i] = right_arm_data.state_handle_->getRobotState().q[i];
+            }
             controller_type_ = 1;
             ROS_WARN_STREAM("Switching to Joint Impedance Controller");
             res.finishSwitchController = true;
         }else if(strcmp(req.controllerType.c_str(), "cartesian_impedance") == 0){
+            std::array<double, 7> left_joint_position_cmd{}, right_joint_position_cmd{};
+            for (int i = 0; i < 7; ++i) {
+                left_joint_position_cmd[i] = left_arm_data.state_handle_->getRobotState().q[i];
+                right_joint_position_cmd[i] = right_arm_data.state_handle_->getRobotState().q[i];
+            }
+            std::array<double, 16> left_F_T_EE = left_arm_data.state_handle_->getRobotState().F_T_EE;
+            std::array<double, 16> left_EE_T_K = left_arm_data.state_handle_->getRobotState().EE_T_K;
+
+            std::array<double, 16> right_F_T_EE = right_arm_data.state_handle_->getRobotState().F_T_EE;
+            std::array<double, 16> right_EE_T_K = right_arm_data.state_handle_->getRobotState().EE_T_K;
+
+            auto left_ee_pose = left_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, left_joint_position_cmd, left_F_T_EE, left_EE_T_K);
+            auto left_ee_affine = affx::Affine(left_ee_pose);
+            left_arm_data.impedance_motion_.setTarget(left_ee_affine);
+            left_arm_data.position_d_target_  << left_arm_data.impedance_motion_.target.translation();
+
+            auto right_ee_pose = right_arm_data.model_handle_->getPose(franka::Frame::kEndEffector, right_joint_position_cmd, right_F_T_EE, right_EE_T_K);
+            auto right_ee_affine = affx::Affine(right_ee_pose);
+            right_arm_data.impedance_motion_.setTarget(right_ee_affine);
+            right_arm_data.position_d_target_  << right_arm_data.impedance_motion_.target.translation();
+
             controller_type_ = 2;
             res.finishSwitchController = true;
             ROS_WARN_STREAM("Switching to Cartesian Impedance Controller");
@@ -765,8 +790,10 @@ namespace franka_controllers
             left_srv.request.targetPoint = req.targetPoint;
             if (left_createTrajectoryclient_.call(left_srv)){
                 ROS_INFO("Succeed call the left arm trajectory create service");
+                res.finishPublishCommand = true;
             } else{
                 ROS_ERROR("/panda_left/create_trajectory srv is not exit!!");
+                res.finishPublishCommand = false;
             }
         } else if (strcmp(req.arm.c_str(), "right") == 0){
             franka_controllers::createTrajectory right_srv;
@@ -776,8 +803,10 @@ namespace franka_controllers
             right_srv.request.targetPoint = req.targetPoint;
             if (right_createTrajectoryclient_.call(right_srv)){
                 ROS_INFO("Succeed call the right arm trajectory create service");
+                res.finishPublishCommand = true;
             } else{
                 ROS_ERROR("/panda_right/create_trajectory srv is not exit!!");
+                res.finishPublishCommand = false;
             }
         } else if (strcmp(req.arm.c_str(), "dual") == 0){
             franka_controllers::createTrajectory left_srv;
@@ -786,25 +815,34 @@ namespace franka_controllers
                 left_srv.request.currentJoint[i] = left_arm_data.state_handle_->getRobotState().q[i];
             }
             left_srv.request.targetPoint = req.targetPoint;
-            if (left_createTrajectoryclient_.call(left_srv)){
-                ROS_INFO("Succeed call the left arm trajectory create service");
-            } else{
-                ROS_ERROR("/panda_left/create_trajectory srv is not exit!!");
-            }
             for (int i = 0; i < 7; ++i) {
                 right_srv.request.currentJoint[i] = right_arm_data.state_handle_->getRobotState().q[i];
             }
             right_srv.request.targetPoint = req.targetPoint;
-            if (right_createTrajectoryclient_.call(right_srv)){
-                ROS_INFO("Succeed call the right arm trajectory create service");
+
+            if (left_createTrajectoryclient_.call(left_srv)&&right_createTrajectoryclient_.call(right_srv)){
+                ROS_INFO("Succeed call the dual arm trajectory create service");
+                res.finishPublishCommand = true;
             } else{
-                ROS_ERROR("/panda_right/create_trajectory srv is not exit!!");
+                res.finishPublishCommand = false;
+                ROS_ERROR("/panda_left/create_trajectory or /panda_right/create_trajectory srv is not exit!!");
             }
 
+//            if (left_createTrajectoryclient_.call(left_srv)){
+//                ROS_INFO("Succeed call the left arm trajectory create service");
+//            } else{
+//                ROS_ERROR("/panda_left/create_trajectory srv is not exit!!");
+//            }
+//            if (right_createTrajectoryclient_.call(right_srv)){
+//                ROS_INFO("Succeed call the right arm trajectory create service");
+//            } else{
+//                ROS_ERROR("/panda_right/create_trajectory srv is not exit!!");
+//            }
+
         } else{
+            res.finishPublishCommand = false;
             ROS_WARN("Invilad arm name!");
         }
-
         return true;
     }
 
