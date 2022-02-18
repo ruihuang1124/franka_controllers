@@ -358,10 +358,15 @@ namespace franka_controllers
         tau_task << jacobian.transpose() * (-arm_data.cartesian_stiffness_ * error -
                                             arm_data.cartesian_damping_ * (jacobian * dq));
         // nullspace PD control with damping ratio = 1
+//        tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) -
+//                          jacobian.transpose() * jacobian_transpose_pinv) *
+//                             (arm_data.nullspace_stiffness_ * (arm_data.q_d_nullspace_ - q) -
+//                              (2.0 * sqrt(arm_data.nullspace_stiffness_)) * dq);
+
         tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) -
                           jacobian.transpose() * jacobian_transpose_pinv) *
-                             (arm_data.nullspace_stiffness_ * (arm_data.q_d_nullspace_ - q) -
-                              (2.0 * sqrt(arm_data.nullspace_stiffness_)) * dq);
+                         (arm_data.k_gains_ * (arm_data.q_d_nullspace_ - q) -
+                          arm_data.d_gains_ * dq);
 
         // get the customized gravity torque:
 

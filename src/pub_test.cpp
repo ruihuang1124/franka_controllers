@@ -60,9 +60,9 @@ int main(int argc, char *argv[])
         -1, 0, 0, 0,
         0, 0, 0, 1; //rotation around Y 90 degree;
     rotation_left_2 << 1, 0, 0, 0,
-        0, cos(- PI / 4), -sin(- PI / 4), 0,
-        0, sin(- PI / 4), cos(- PI / 4), 0,
-        0, 0, 0, 1; //rotation around X -45 degree;
+        0, cos(- (PI*75/180)), -sin(- (PI*75/180)), 0,
+        0, sin(- (PI*75/180)), cos(- (PI*75/180)), 0,
+        0, 0, 0, 1; //rotation around X -75 degree;
     rotation_left_3 << cos(- PI / 6), -sin(- PI / 6), 0, 0,
         sin(- PI / 6), cos(- PI / 6), 0, 0,
         0, 0, 1, 0,
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     ROS_WARN_STREAM(rotation_left);
     left_gravity_incustomized_direction = rotation_left.inverse() * gravity_earth_direction;
     left_gravity_incustomized_direction(3, 0) = 0;
-    ROS_ERROR("Light_arm gravity direction is:%.16f,%.16f,%.16f,%.16f", left_gravity_incustomized_direction(0, 0), left_gravity_incustomized_direction(1, 0), left_gravity_incustomized_direction(2, 0), left_gravity_incustomized_direction.norm());
+    ROS_ERROR("Left_arm gravity direction are:%.16f,%.16f,%.16f,%.16f", left_gravity_incustomized_direction(0, 0), left_gravity_incustomized_direction(1, 0), left_gravity_incustomized_direction(2, 0), left_gravity_incustomized_direction.norm());
 
     rotationMatrix_left(0, 0) = rotation_left(0, 0);
     rotationMatrix_left(0, 1) = rotation_left(0, 1);
@@ -101,8 +101,8 @@ int main(int argc, char *argv[])
         -1, 0, 0, 0,
         0, 0, 0, 1; //rotation around Y 90 degree;
     rotation_right_2 << 1, 0, 0, 0,
-        0, cos(PI / 4), -sin(PI / 4), 0,
-        0, sin(PI / 4), cos(PI / 4), 0,
+        0, cos(PI*75/180), -sin(PI*75/180), 0,
+        0, sin(PI*75/180), cos(PI*75/180), 0,
         0, 0, 0, 1; //rotation around X -45 degree;
     rotation_right_3 << cos(PI / 6), -sin(PI / 6), 0, 0,
         sin(PI / 6), cos(PI / 6), 0, 0,
@@ -187,13 +187,30 @@ int main(int argc, char *argv[])
     // Eigen::Matrix3d rotationMatrix1_compare = q_compare.toRotationMatrix();
     // ROS_WARN_STREAM(rotationMatrix1_compare);
     // ROS_ERROR("The final value is:%.16f,%.16f,%.16f,%.16f",q.x(),q.y,q.z,q.w);
+        /**** 1. 旋转向量 ****/
 
+    //1.0 初始化旋转向量,沿Z轴旋转45度的旋转向量
+    Eigen::AngleAxisd rotation_vector1 (M_PI/4, Eigen::Vector3d(0, 0, 1)); 
+ 
+    //1.1 旋转向量转换为旋转矩阵
+    //旋转向量用matrix()转换成旋转矩阵
+    Eigen::Matrix3d rotation_matrix1 = Eigen::Matrix3d::Identity();
+    rotation_matrix1 = rotation_vector1.matrix();               
+    //或者由罗德里格公式进行转换
+    rotation_matrix1 = rotation_vector1.toRotationMatrix();
+ 
+    /*1.2 旋转向量转换为欧拉角*/
+    //将旋转向量转换为旋转矩阵,再由旋转矩阵转换为欧拉角,详见旋转矩阵转换为欧拉角
+    Eigen::Vector3d eulerAngle1 = rotation_vector1.matrix().eulerAngles(2,1,0);
+    // cout << "eulerAngle1, z y x: " << eulerAngle1 << endl;
     //
     //set pub rate
     ros::Rate rate(10);
     //pub through loop
     while (ros::ok())
     {
+        // stdf::cout << "eulerAngle1, z y x: " << eulerAngle1 << endl;
+        // ROS_WARN_THROTTLE(eulerAngle1);
         //change the date
         // main task: pub the msg
         // pub.publish(left_target_pose);
