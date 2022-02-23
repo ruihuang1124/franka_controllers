@@ -1,15 +1,19 @@
-left_home_rate: 10
-left_end_rate: 10
-left_home_point_number: 500
-left_end_point_number: 500
+left_home_rate: 100
+left_end_rate: 100
+left_default_rate: 100
+left_home_point_number: 3000
+left_end_point_number: 3000
+left_default_point_number: 3000
 
 left_home_joint: [0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753]
 left_end_joint: [0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753]
 
 right_home_rate: 100
-right_end_rate: 10
-right_home_point_number: 500
-right_end_point_number: 500
+right_end_rate: 100
+right_default_rate: 100
+right_home_point_number: 3000
+right_end_point_number: 3000
+right_default_point_number: 3000
 
 
 right_home_joint: [-0.7780238883788124, 0.7200491727611475, 0.5834831916341185, -0.66359594027604656, -0.43295345889197445, 2.40979893658763, 0.8452322907588546]

@@ -227,6 +227,14 @@ namespace franka_controllers
         bool executemovetoHomeCB(franka_controllers::movetoHome::Request& req,
                                 franka_controllers::movetoHome::Response& res);
 
+        ros::ServiceServer movetoTarget_left_;
+        bool executemovetoTargetLeftCB(franka_controllers::movetoHome::Request& req,
+                                franka_controllers::movetoHome::Response& res);
+
+        ros::ServiceServer movetoTarget_right_;
+        bool executemovetoTargetRightCB(franka_controllers::movetoHome::Request& req,
+                                franka_controllers::movetoHome::Response& res);
+
         ros::Publisher left_arm_state_publisher_,right_arm_state_publisher_;
 
         double alpha = 0.99;

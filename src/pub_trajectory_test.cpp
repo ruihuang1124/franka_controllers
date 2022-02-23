@@ -31,6 +31,15 @@ public:
         nh.getParam("/right_home_point_number",right_end_point_number_);
         nh.getParam("/left_command_quene_size",left_command_quene_size_);
         nh.getParam("/right_command_quene_size",right_command_quene_size_);
+        nh.getParam("/left_default_rate",left_default_rate_);
+        nh.getParam("/left_default_point_number",left_default_point_number_);
+        nh.getParam("/right_default_rate",right_default_rate_);
+        nh.getParam("/right_default_point_number",right_default_point_number_);
+        left_pub_flag_ = true;
+        right_pub_flag_ = true;
+
+        upper_joint_position_warning_limits_ << 2.7, 1.6, 2.7, 0, 2.7, 3.6, 2.7;
+        lower_joint_position_warning_limits_ << -2.7,-1.6, -2.7, -2.9, -2.7, 0, -2.7;
 
         //if the franka is install in a customized way:
         XmlRpc::XmlRpcValue left_home_joint_args, right_home_joint_args, left_end_joint_args, right_end_joint_args;
@@ -107,6 +116,10 @@ private:
     int left_home_rate_, left_end_rate_, right_home_rate_, right_end_rate_, left_home_point_number_, left_end_point_number_, right_home_point_number_, right_end_point_number_;
     int left_command_quene_size_, right_command_quene_size_;
     bool left_home_go_, left_end_go_, right_home_go_, right_end_go_;
+    Eigen::Matrix<double, 7, 1> upper_joint_position_warning_limits_, lower_joint_position_warning_limits_;
+    bool left_pub_flag_, right_pub_flag_;
+    int left_default_rate_, right_default_rate_, left_default_point_number_, right_default_point_number_;
+
 };
 
 bool multiThreadService::pandaLeftCB(franka_controllers::createTrajectory::Request &req,
@@ -118,7 +131,7 @@ bool multiThreadService::pandaLeftCB(franka_controllers::createTrajectory::Reque
         }
         ros::Rate rate(left_home_rate_);
         //pub through loop
-        for (int i = 0; i < left_home_point_number_; ++i) {
+        for (int i = 0; i <= left_home_point_number_; ++i) {
             for (int j = 0; j < 7; ++j) {
                 left_execute_joint_.position[j] = left_initial_joint_[j]+ i * (left_home_joint_[j] - left_initial_joint_[j]) / left_home_point_number_;
             }
@@ -134,7 +147,7 @@ bool multiThreadService::pandaLeftCB(franka_controllers::createTrajectory::Reque
         }
         ros::Rate rate(left_end_rate_);
         //pub through loop
-        for (int i = 0; i < left_end_point_number_; ++i) {
+        for (int i = 0; i <= left_end_point_number_; ++i) {
             for (int j = 0; j < 7; ++j) {
                 left_execute_joint_.position[j] = left_initial_joint_[j]+ i * (left_end_joint_[j] - left_initial_joint_[j]) / left_end_point_number_;
             }
@@ -145,8 +158,35 @@ bool multiThreadService::pandaLeftCB(franka_controllers::createTrajectory::Reque
         return true;
     } else{
         ROS_INFO("Receive target Point: [%s] for Left arm!", req.targetPoint.c_str());
-        ROS_WARN("Invilid target position name, please check!!");
-        return false;
+        for (int i = 0; i < 7; i++) {
+            if (req.desireJoint[i] < lower_joint_position_warning_limits_(i) || req.desireJoint[i] > upper_joint_position_warning_limits_(i)){
+                ROS_WARN("Desired Joint %d of left arm with value %.4f is about to out of robot arm's joint limit!!",i+1,req.desireJoint[i]);
+                left_pub_flag_ = false;
+            }
+        }
+        if (left_pub_flag_)
+        {
+            ROS_INFO("Start publishing a trajectory to: [%s] for Left arm!", req.targetPoint.c_str());
+            for (int i = 0; i < 7; ++i) {
+                left_initial_joint_[i] = req.currentJoint[i];
+            }
+            ros::Rate rate(left_default_rate_);
+            //pub through loop
+            for (int i = 0; i <= left_default_point_number_; ++i) {
+                for (int j = 0; j < 7; ++j) {
+                    left_execute_joint_.position[j] = left_initial_joint_[j]+ i * (req.desireJoint[j] - left_initial_joint_[j]) / left_default_point_number_;
+                }
+                pub_left_joint_.publish(left_execute_joint_);
+                rate.sleep();
+            }
+            res.finishPublishCommand = true;
+            return true;
+            /* code */
+        }else{
+            ROS_WARN("Received wrong JointState!!");
+            left_pub_flag_ = true;
+            return false;
+        }
     }
 }
 
@@ -159,7 +199,7 @@ bool multiThreadService::pandaRightCB(franka_controllers::createTrajectory::Requ
         }
         ros::Rate rate(right_home_rate_);
         //pub through loop
-        for (int i = 0; i < right_home_point_number_; ++i) {
+        for (int i = 0; i <= right_home_point_number_; ++i) {
             for (int j = 0; j < 7; ++j) {
                 right_execute_joint_.position[j] = right_initial_joint_[j]+ i * (right_home_joint_[j] - right_initial_joint_[j]) / right_home_point_number_;
             }
@@ -175,7 +215,7 @@ bool multiThreadService::pandaRightCB(franka_controllers::createTrajectory::Requ
         }
         ros::Rate rate(right_end_rate_);
         //pub through loop
-        for (int i = 0; i < right_end_point_number_; ++i) {
+        for (int i = 0; i <= right_end_point_number_; ++i) {
             for (int j = 0; j < 7; ++j) {
                 right_execute_joint_.position[j] = right_initial_joint_[j]+ i * (right_end_joint_[j] - right_initial_joint_[j]) / right_end_point_number_;
             }
@@ -185,9 +225,36 @@ bool multiThreadService::pandaRightCB(franka_controllers::createTrajectory::Requ
         res.finishPublishCommand = true;
         return true;
     } else{
-        ROS_INFO("Receive target Point: [%s] for Left arm!", req.targetPoint.c_str());
-        ROS_WARN("Invilid target position name, please check!!");
-        return false;
+        ROS_INFO("Receive target Point: [%s] for Right arm!", req.targetPoint.c_str());
+        for (int i = 0; i < 7; i++) {
+            if (req.desireJoint[i] < lower_joint_position_warning_limits_(i) || req.desireJoint[i] > upper_joint_position_warning_limits_(i)){
+                ROS_WARN("Desired Joint %d of right arm with value %.4f is about to out of robot arm's joint limit!!",i,req.desireJoint[i]);
+                right_pub_flag_ = false;
+            }
+        }
+        if (right_pub_flag_)
+        {
+            ROS_INFO("Start publishing a trajectory to: [%s] for Right arm!", req.targetPoint.c_str());
+            for (int i = 0; i < 7; ++i) {
+                right_initial_joint_[i] = req.currentJoint[i];
+            }
+            ros::Rate rate(right_default_rate_);
+            //pub through loop
+            for (int i = 0; i <= right_default_point_number_; ++i) {
+                for (int j = 0; j < 7; ++j) {
+                    right_execute_joint_.position[j] = right_initial_joint_[j]+ i * (req.desireJoint[j] - right_initial_joint_[j]) / right_default_point_number_;
+                }
+                pub_right_joint_.publish(right_execute_joint_);
+                rate.sleep();
+            }
+            res.finishPublishCommand = true;
+            return true;
+            /* code */
+        }else{
+            ROS_WARN("Received wrong JointState!!");
+            right_pub_flag_ = true;
+            return false;
+        }
     }
 }
 

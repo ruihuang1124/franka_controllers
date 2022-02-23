@@ -241,6 +241,12 @@ namespace franka_controllers
         //Initialize service to achieve curi arm swith function
         movetoHome_ = node_handle.advertiseService("/dual_panda/movetoHome", &DualArmCartesianImpedanceController::executemovetoHomeCB, this);
         ROS_INFO_STREAM("Advertising service /dual_panda/movetoHome");
+
+        movetoTarget_left_ = node_handle.advertiseService("/dual_panda/left/movetoTarget", &DualArmCartesianImpedanceController::executemovetoTargetLeftCB, this);
+        ROS_INFO_STREAM("Advertising service /dual_panda/left/movetoTarget");
+
+        movetoTarget_right_ = node_handle.advertiseService("/dual_panda/right/movetoTarget", &DualArmCartesianImpedanceController::executemovetoTargetRightCB, this);
+        ROS_INFO_STREAM("Advertising service /dual_panda/left/movetoTarget");
         controller_type_ = 1;
         left_createTrajectoryclient_ = node_handle.serviceClient<franka_controllers::createTrajectory>("/panda_left/create_trajectory");
         right_createTrajectoryclient_ = node_handle.serviceClient<franka_controllers::createTrajectory>("/panda_right/create_trajectory");
@@ -849,6 +855,45 @@ namespace franka_controllers
             ROS_WARN("Invilad arm name!");
         }
         return true;
+    }
+
+    bool DualArmCartesianImpedanceController::executemovetoTargetLeftCB(franka_controllers::movetoHome::Request &req,
+                                                                  franka_controllers::movetoHome::Response &res) {
+        auto& left_arm_data = arms_data_.at(left_arm_id_);
+        franka_controllers::createTrajectory left_srv;
+        for (int i = 0; i < 7; ++i) {
+            left_srv.request.currentJoint[i] = left_arm_data.state_handle_->getRobotState().q[i];
+            left_srv.request.desireJoint[i] = req.desireJoint[i];
+        }
+        left_srv.request.targetPoint = req.targetPoint;
+        if (left_createTrajectoryclient_.call(left_srv)){
+            ROS_INFO("Succeed call the left arm trajectory create service");
+            res.finishPublishCommand = true;
+        } else{
+            ROS_ERROR("/panda_left/create_trajectory srv is not exit!!");
+            res.finishPublishCommand = false;
+        }
+    return true;
+    }
+
+    
+    bool DualArmCartesianImpedanceController::executemovetoTargetRightCB(franka_controllers::movetoHome::Request &req,
+                                                                  franka_controllers::movetoHome::Response &res) {
+        auto& right_arm_data = arms_data_.at(right_arm_id_);
+        franka_controllers::createTrajectory right_srv;
+        for (int i = 0; i < 7; ++i) {
+            right_srv.request.currentJoint[i] = right_arm_data.state_handle_->getRobotState().q[i];
+            right_srv.request.desireJoint[i] = req.desireJoint[i];
+        }
+        right_srv.request.targetPoint = req.targetPoint;
+        if (right_createTrajectoryclient_.call(right_srv)){
+            ROS_INFO("Succeed call the right arm trajectory create service");
+            res.finishPublishCommand = true;
+        } else{
+            ROS_ERROR("/panda_right/create_trajectory srv is not exit!!");
+            res.finishPublishCommand = false;
+        }
+    return true;
     }
 
 } // namespace franka_controllers

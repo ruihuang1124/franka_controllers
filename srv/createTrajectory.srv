@@ -1,5 +1,6 @@
 # std_msgs/Header header
 float64[7] currentJoint
+float64[7] desireJoint
 string targetPoint
 ---
 bool finishPublishCommand
