@@ -169,7 +169,7 @@ catkin_package(
 ## Specify additional locations of header files
 include_directories(
         include
-        /home/${USER}/tools/frankx/include
+        /home/${USER}/curi/curi_ros/curi_frankx_interface/frankx/include
         /home/${USER}/tools/frankx/affx/include
         /home/${USER}/tools/frankx/ruckig/include
         ${catkin_INCLUDE_DIRS}
