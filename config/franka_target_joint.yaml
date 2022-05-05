@@ -6,7 +6,7 @@ left_end_point_number: 3000
 left_default_point_number: 3000
 
 left_home_joint: [0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753]
-left_end_joint: [0.562135426947945, 0.5743059311833298, 0.04049851962087446, -0.5328376126029071, 0.010031284674710173, 2.508450375456964, 0.8626112982928753]
+left_end_joint: [0.617, 0.551, -0.0335, -0.578, 0.0622, 2.222, 0.187]
 
 right_home_rate: 100
 right_end_rate: 100
@@ -126,10 +126,86 @@ speed_ratio: 0.1"
 official_home_joint_configuration:
   0, -0.785, 0, -2.355, 0, 1.57, 0.785
 
-self_set_home_joint_configuration:
+self_set_end_joint_configuration:
   0.562, 0.574, 0.040, -0.533, 0.010, 2.508, 0.863
+rosservice call /panda_left/execute_joint_position_srv_control "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [0.562, 0.574, 0.040, -0.533, 0.010, 2.508, 0.863]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
 
 end_point3_joint_position:
   0.650, 0.567, -0.084, -0.578, 0.0620, 2.264, 0.194
+  
+  
+  
+  ============================
+  # right arm
+  end_position1:
+  -0.7780238883788124, 0.6200491727611475, 0.3834831916341185, -0.46359594027604656, -0.43295345889197445, 2.40979893658763, 0.8452322907588546
+rosservice call /panda_right/execute_joint_position_srv_control "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [-0.778, 0.620, 0.383, -0.4635, -0.433, 2.41, 0.845]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
+
+ home_position1:
+   -0.7780238883788124, 0.7200491727611475, 0.5834831916341185, -0.66359594027604656, -0.43295345889197445, 2.40979893658763, 0.8452322907588546
+rosservice call /panda_right/execute_joint_position_srv_control "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [-0.778, 0.720, 0.583, -0.663, -0.43, 2.409, 0.845]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
 
 
+====
+#curi
+rosservice call /execute_curi_joint_position "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [0.3,0,0,0.613, 0.696, -0.03416, -0.579, 0.0627, 2.129, 0.187,-0.778, 0.720, 0.583, -0.663, -0.43, 2.409, 0.845]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
+
+
+
+rosservice call /execute_curi_joint_position "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [0,0,0,0.562, 0.574, 0.040, -0.533, 0.010, 2.508, 0.863,-0.778, 0.620, 0.383, -0.4635, -0.433, 2.41, 0.845]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
+
+rosservice call /execute_curi_joint_position "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [0.3,0,0,0, -0.785, 0, -2.355, 0, 1.57, 0.785,0, -0.785, 0, -2.355, 0, 1.57, 0.785]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
