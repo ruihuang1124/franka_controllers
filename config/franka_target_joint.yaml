@@ -42,3 +42,94 @@ right_end_joint: [-0.7780238883788124, 0.6200491727611475, 0.3834831916341185, -
 #o_end_joint3:[-0.7190714398343253, 0.6976134255225198, 0.4298624852809564, -0.5144356454894758, -0.4541128028005137, 2.4174824168019824, 0.8479499701004889]
 #o_end_joint4:[-0.712970073715943, 0.6699421870680335, 0.4375025677759149, -0.513114629584024, -0.454140026834276, 2.4185933710866503, 0.8479583893329612]
 #o_end_joint5:[]
+
+left arm:
+
+end_point1:
+  position:
+    x: 0.632073240445509
+    y: 0.4591697971631916
+    z: 0.783348570483
+  orientation:
+    x: 0.6991598868218329
+    y: 0.4651891646565687
+    z: 0.5412705526514202
+    w: 0.04235254932858261
+
+
+rosservice call /panda_left/execute_cartesian_pose_srv_control "header:
+  seq: 0
+  stamp: {secs: 0, nsecs: 0}
+  frame_id: ''
+group_name: ''
+goal_type: 0
+goal:
+  position: {x: 0.632, y: 0.459, z: 0.783}
+  orientation: {x: 0.699, y: 0.465, z: 0.541, w: 0.042}
+tolerance: 0.1
+constraint: ''"
+
+with joint position:
+0.617, 0.551, -0.0335, -0.578, 0.0622, 2.222, 0.187
+
+rosservice call /panda_left/execute_joint_position_srv_control "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [0.617, 0.551, -0.0335, -0.578, 0.0622, 2.222, 0.187]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
+
+
+end_point2:
+  position:
+    x: 0.66846656834415
+    y: 0.47662907935728005
+    z: 0.6375299309939028
+  orientation:
+    x: 0.7663670002192301
+    y: 0.5020392085659462
+    z: 0.40008748613505957
+    w: 0.023693428880132615
+
+rosservice call /panda_left/execute_cartesian_pose_srv_control "header:
+  seq: 0
+  stamp: {secs: 0, nsecs: 0}
+  frame_id: ''
+group_name: ''
+goal_type: 0
+goal:
+  position: {x: 0.668, y: 0.476, z: 0.637}
+  orientation: {x: 0.766, y: 0.502, z: 0.400, w: 0.0237}
+tolerance: 0.1
+constraint: ''"
+
+with joint position:
+0.613, 0.696, -0.03416, -0.579, 0.0627, 2.129, 0.187
+
+rosservice call /panda_left/execute_joint_position_srv_control "goal_state:
+  header:
+    seq: 0
+    stamp: {secs: 0, nsecs: 0}
+    frame_id: ''
+  name: ['']
+  position: [0.613, 0.696, -0.03416, -0.579, 0.0627, 2.129, 0.187]
+  velocity: [0]
+  effort: [0]
+speed_ratio: 0.1"
+
+
+
+official_home_joint_configuration:
+  0, -0.785, 0, -2.355, 0, 1.57, 0.785
+
+self_set_home_joint_configuration:
+  0.562, 0.574, 0.040, -0.533, 0.010, 2.508, 0.863
+
+end_point3_joint_position:
+  0.650, 0.567, -0.084, -0.578, 0.0620, 2.264, 0.194
+
+
