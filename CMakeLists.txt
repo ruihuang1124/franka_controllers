@@ -213,6 +213,7 @@ add_executable(pub_test src/pub_test.cpp)
 add_executable(libfranka_test src/libfranka_test.cpp)
 add_executable(pub_target src/pub_target.cpp)
 add_executable(pub_trajectory_test src/pub_trajectory_test.cpp)
+add_executable(execute_multi_client_server src/execute_multi_client_server.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -236,6 +237,7 @@ add_dependencies(pub_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_
 add_dependencies(libfranka_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(pub_target ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(pub_trajectory_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(execute_multi_client_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
@@ -267,6 +269,11 @@ target_link_libraries(pub_target
         )
 
 target_link_libraries(pub_trajectory_test
+        ${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        )
+
+target_link_libraries(execute_multi_client_server
         ${PROJECT_NAME}
         ${catkin_LIBRARIES}
         )
