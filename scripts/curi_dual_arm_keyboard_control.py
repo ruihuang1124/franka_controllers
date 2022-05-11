@@ -19,13 +19,13 @@ def keyboardLoop():
     rospy.init_node('curi_dual_arm_teleop_keyboard')
     rate = rospy.Rate(rospy.get_param('~hz', 200))
 
-    joint1_vel_ = rospy.get_param('joint1_vel', 0.01)
-    joint2_vel_ = rospy.get_param('joint2_vel', 0.01)
-    joint3_vel_ = rospy.get_param('joint3_vel', 0.01)
-    joint4_vel_ = rospy.get_param('joint4_vel', 0.01)
-    joint5_vel_ = rospy.get_param('joint5_vel', 0.01)
-    joint6_vel_ = rospy.get_param('joint6_vel', 0.01)
-    joint7_vel_ = rospy.get_param('joint7_vel', 0.01)
+    joint1_vel_ = rospy.get_param('joint1_vel', 0.05)
+    joint2_vel_ = rospy.get_param('joint2_vel', 0.05)
+    joint3_vel_ = rospy.get_param('joint3_vel', 0.05)
+    joint4_vel_ = rospy.get_param('joint4_vel', 0.05)
+    joint5_vel_ = rospy.get_param('joint5_vel', 0.05)
+    joint6_vel_ = rospy.get_param('joint6_vel', 0.1)
+    joint7_vel_ = rospy.get_param('joint7_vel', 0.1)
 
 
     while not rospy.is_shutdown():
