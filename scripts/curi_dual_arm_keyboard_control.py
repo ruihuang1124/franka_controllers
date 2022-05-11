@@ -149,7 +149,118 @@ def keyboardLoop():
             right_vel_6 = 0
             right_vel_7 = 0
 
-        elif ch == 'Q':
+        elif ch == 'q':
+            left_vel_1 = -joint1_vel_
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+        elif ch == 'w':
+            left_vel_1 = 0
+            left_vel_2 = -joint2_vel_
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+        elif ch == 'e':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = -joint3_vel_
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+
+        elif ch == 'r':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = -joint4_vel_
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+
+        elif ch == 't':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = -joint5_vel_
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+
+
+        elif ch == 'y':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = -joint6_vel_
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+
+        elif ch == 'u':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = -joint7_vel_
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+
+        elif ch == 'a':
             left_vel_1 = 0
             left_vel_2 = 0
             left_vel_3 = 0
@@ -164,7 +275,7 @@ def keyboardLoop():
             right_vel_5 = 0
             right_vel_6 = 0
             right_vel_7 = 0
-        elif ch == 'W':
+        elif ch == 's':
             left_vel_1 = 0
             left_vel_2 = 0
             left_vel_3 = 0
@@ -179,7 +290,7 @@ def keyboardLoop():
             right_vel_5 = 0
             right_vel_6 = 0
             right_vel_7 = 0
-        elif ch == 'E':
+        elif ch == 'd':
             left_vel_1 = 0
             left_vel_2 = 0
             left_vel_3 = 0
@@ -195,7 +306,7 @@ def keyboardLoop():
             right_vel_6 = 0
             right_vel_7 = 0
 
-        elif ch == 'R':
+        elif ch == 'f':
             left_vel_1 = 0
             left_vel_2 = 0
             left_vel_3 = 0
@@ -211,7 +322,7 @@ def keyboardLoop():
             right_vel_6 = 0
             right_vel_7 = 0
 
-        elif ch == 'T':
+        elif ch == 'g':
             left_vel_1 = 0
             left_vel_2 = 0
             left_vel_3 = 0
@@ -228,7 +339,7 @@ def keyboardLoop():
             right_vel_7 = 0
 
 
-        elif ch == 'Y':
+        elif ch == 'h':
             left_vel_1 = 0
             left_vel_2 = 0
             left_vel_3 = 0
@@ -244,7 +355,7 @@ def keyboardLoop():
             right_vel_6 = joint6_vel_
             right_vel_7 = 0
 
-        elif ch == 'U':
+        elif ch == 'j':
             left_vel_1 = 0
             left_vel_2 = 0
             left_vel_3 = 0
@@ -260,8 +371,116 @@ def keyboardLoop():
             right_vel_6 = 0
             right_vel_7 = joint7_vel_
 
+        elif ch == 'z':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = -joint1_vel_
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+        elif ch == 'x':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = -joint2_vel_
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
 
+        elif ch == 'c':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = -joint3_vel_
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+
+        elif ch == 'v':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = -joint4_vel_
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = 0
+
+        elif ch == 'b':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = -joint5_vel_
+            right_vel_6 = 0
+            right_vel_7 = 0
+        elif ch == 'n':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = -joint6_vel_
+            right_vel_7 = 0
         elif ch == 'm':
+            left_vel_1 = 0
+            left_vel_2 = 0
+            left_vel_3 = 0
+            left_vel_4 = 0
+            left_vel_5 = 0
+            left_vel_6 = 0
+            left_vel_7 = 0
+            right_vel_1 = 0
+            right_vel_2 = 0
+            right_vel_3 = 0
+            right_vel_4 = 0
+            right_vel_5 = 0
+            right_vel_6 = 0
+            right_vel_7 = -joint7_vel_
+
+        elif ch == '0':
             exit()
         else:
             left_vel_1 = 0
