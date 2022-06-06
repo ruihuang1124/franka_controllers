@@ -217,6 +217,7 @@ add_executable(pub_trajectory_test src/pub_trajectory_test.cpp)
 add_executable(execute_multi_client_server src/execute_multi_client_server.cpp)
 add_executable(execute_dual_gripper_server src/execute_dual_gripper_server.cpp)
 add_executable(execute_dual_arm_pose src/execute_dual_arm_pose_server.cpp)
+add_executable(execute_dual_arm_joint_server src/execute_dual_arm_joint_server.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -243,6 +244,7 @@ add_dependencies(pub_trajectory_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catki
 add_dependencies(execute_multi_client_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(execute_dual_gripper_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(execute_dual_arm_pose ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(execute_dual_arm_joint_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
@@ -289,6 +291,11 @@ target_link_libraries(execute_dual_gripper_server
         )
 
 target_link_libraries(execute_dual_arm_pose
+        ${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        )
+
+target_link_libraries(execute_dual_arm_joint_server
         ${PROJECT_NAME}
         ${catkin_LIBRARIES}
         )
