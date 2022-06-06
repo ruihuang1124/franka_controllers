@@ -1,0 +1,5 @@
+<launch>
+    <rosparam file="$(find franka_controllers)/config/dual_arm_default_joints.yaml" command="load"/>
+    <node pkg="franka_controllers" type="pub_joint_ptp_trajectory" name="dual_arm_ptp_joint_trajectory_generator" output="screen">
+    </node>
+</launch>
