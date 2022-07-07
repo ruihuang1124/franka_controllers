@@ -37,6 +37,10 @@ if __name__ == "__main__":
     Temp_tra_point2 = CartesianTrajectoryPoint()
     final_tra_point = CartesianTrajectoryPoint()
     desired_trajectory = FollowCartesianTrajectoryGoal()
-    desired_trajectory.points = [start_tra_point, Temp_tra_point1, Temp_tra_point2, final_tra_point]
+    start_tra_point.pose.position.x = 0.1;
+    Temp_tra_point1.pose.position.x = 0.1;
+    Temp_tra_point2.pose.position.x = 0.1;
+    final_tra_point.pose.position.x = 0.2;
+    desired_trajectory.trajectory.points = [start_tra_point, Temp_tra_point1, Temp_tra_point2, final_tra_point]
     client.send_goal(desired_trajectory, done_cb, active_cb, fb_cb)
     rospy.spin()
