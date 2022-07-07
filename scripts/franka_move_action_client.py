@@ -8,8 +8,8 @@ import rospy
 import actionlib
 from control_msgs.msg import *
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from cartesian_control_msgs import FollowCartesianTrajectoryAction, FollowCartesianTrajectoryGoal
-from cartesian_control_msgs import CartesianTrajectory, CartesianTrajectoryPoint
+from cartesian_control_msgs.msg import FollowCartesianTrajectoryAction, FollowCartesianTrajectoryGoal
+from cartesian_control_msgs.msg import CartesianTrajectory, CartesianTrajectoryPoint
 import time, sys, math
 import datetime
 import math
