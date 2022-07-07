@@ -349,7 +349,7 @@ install(FILES ${PROJECT_NAME}_plugin.xml
 
 
 catkin_install_python(
-  PROGRAMS scripts/interactive_marker.py scripts/move_to_start.py scripts/dual_arm_interactive_marker.py scripts/curi_dual_arm_keyboard_control.py
+  PROGRAMS scripts/interactive_marker.py scripts/move_to_start.py scripts/dual_arm_interactive_marker.py scripts/curi_dual_arm_keyboard_control.py scripts/franka_move_action_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
