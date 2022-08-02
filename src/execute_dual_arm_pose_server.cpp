@@ -17,7 +17,7 @@ public:
         left_arm_client_ = nh_.serviceClient<roport::ExecuteGroupPose>(
                 "/panda_left/execute_cartesian_pose_srv_control");
         right_arm_client_ = nh_.serviceClient<roport::ExecuteGroupPose>(
-                "/panda_right/eexecute_cartesian_pose_srv_control");
+                "/panda_right/execute_cartesian_pose_srv_control");
 
         ros::service::waitForService("/panda_left/execute_cartesian_pose_srv_control");
         ros::service::waitForService("/panda_right/execute_cartesian_pose_srv_control");
