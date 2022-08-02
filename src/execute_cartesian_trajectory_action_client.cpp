@@ -54,7 +54,7 @@ void active_cb() {
 }
 
 void feedback_cb(const cartesian_control_msgs::FollowCartesianTrajectoryFeedbackConstPtr &feedback) {
-    ROS_INFO("Under executing!!");
+//    ROS_INFO("Under executing!!");
 }
 
 
@@ -129,7 +129,7 @@ void multiThreadService::get_min_jerk_pose_trajectory(double time_step, double r
     Eigen::Quaterniond trajectory_point_pose_quaternion;
     cartesian_control_msgs::CartesianTrajectoryPoint trajectory_point;
     for (int i = 0; i < trajectory_length; ++i) {
-        double map_t = i / trajectory_length;
+        double map_t = double(i)/ double(trajectory_length);
         double slerp_t = (10 * std::pow(map_t, 3) - 15 * std::pow(map_t, 4) + 6 * std::pow(map_t, 5));
         trajectory_point.pose.position.x =
                 initial_pose.position.x + (desired_pose.position.x - initial_pose.position.x) * slerp_t;
@@ -142,7 +142,6 @@ void multiThreadService::get_min_jerk_pose_trajectory(double time_step, double r
         trajectory_point.pose.orientation.y = trajectory_point_pose_quaternion.y();
         trajectory_point.pose.orientation.z = trajectory_point_pose_quaternion.z();
         trajectory_point.pose.orientation.w = trajectory_point_pose_quaternion.w();
-//        trajectory_point.time_from_start = i * time_step;
         goal_cartesian_trajectory.trajectory.points.push_back(trajectory_point);
     }
 }
@@ -154,7 +153,7 @@ bool multiThreadService::pandaLeftCB(roport::ExecuteGroupPose::Request &req,
     getCurrentPoseClientLeft.call(get_current_pose);
     //TODO change the time_step and run_time with new define req value.
     double trajectory_run_time = req.tolerance;
-    if (get_current_pose.response.result_status) {
+    if (get_current_pose.response.result_status == res.SUCCEEDED) {
         cartesian_control_msgs::FollowCartesianTrajectoryGoal left_goal_cartesian_trajectory;
         multiThreadService::get_min_jerk_pose_trajectory(default_time_step_, trajectory_run_time,
                                                          get_current_pose.response.pose, req.goal,
@@ -169,15 +168,15 @@ bool multiThreadService::pandaRightCB(roport::ExecuteGroupPose::Request &req,
                                       roport::ExecuteGroupPose::Response &res) {
     roport::GetGroupPose get_current_pose;
     get_current_pose.request.group_name = "End-effector";
-    getCurrentPoseClientLeft.call(get_current_pose);
+    getCurrentPoseClientRight.call(get_current_pose);
     //TODO change the time_step and run_time with new define req value.
     double trajectory_run_time = req.tolerance;
-    if (get_current_pose.response.result_status) {
+    if (get_current_pose.response.result_status == res.SUCCEEDED) {
         cartesian_control_msgs::FollowCartesianTrajectoryGoal right_goal_cartesian_trajectory;
         multiThreadService::get_min_jerk_pose_trajectory(default_time_step_, trajectory_run_time,
                                                          get_current_pose.response.pose, req.goal,
                                                          right_goal_cartesian_trajectory);
-        action_client_left_->sendGoal(right_goal_cartesian_trajectory, &done_cb, &active_cb, &feedback_cb);
+        action_client_right_->sendGoal(right_goal_cartesian_trajectory, &done_cb, &active_cb, &feedback_cb);
     } else {
         ROS_WARN("Fail to get the right arm pose!!!");
     }
@@ -185,6 +184,7 @@ bool multiThreadService::pandaRightCB(roport::ExecuteGroupPose::Request &req,
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "Dual_Arm_Cartesian_Pose_Trajectory_Generator");
+    ROS_INFO("execute_cartesian_trajectory_action_client node start.");
     multiThreadService Service_obj;
     ros::MultiThreadedSpinner s(4);
     ros::spin(s);
