@@ -1,6 +1,9 @@
 //
 // Created by ray on 8/1/22.
 //
+/*
+ * A node shows how to use the action server run in curi_frankx_interface.
+ * */
 
 #include "ros/ros.h"
 #include <geometry_msgs/PoseStamped.h>
@@ -14,31 +17,6 @@
 #include <chrono>
 
 typedef actionlib::SimpleActionClient<cartesian_control_msgs::FollowCartesianTrajectoryAction> Arm_Client;
-
-auto make_point(double x, double y, double z) {
-    geometry_msgs::Point p;
-    p.x = x;
-    p.y = y;
-    p.z = z;
-    return p;
-}
-
-auto make_quaternion(double x = 0.0, double y = 0.0, double z = 0.0, double w = 1.0) {
-    geometry_msgs::Quaternion q;
-    q.x = x;
-    q.y = y;
-    q.z = z;
-    q.w = w;
-    return q;
-}
-
-auto make_pose(geometry_msgs::Point p, geometry_msgs::Quaternion q) {
-    geometry_msgs::Pose pose;
-    pose.position = p;
-    pose.orientation = q;
-    return pose;
-}
-
 void done_cb(const actionlib::SimpleClientGoalState &state,
              const cartesian_control_msgs::FollowCartesianTrajectoryResultConstPtr &result) {
     if (state.state_ == state.SUCCEEDED) {
@@ -62,12 +40,6 @@ class multiThreadService {
 public:
     multiThreadService() {
         default_time_step_ = 0.001;
-//        left_home_pose_ = make_pose(make_point(0.632, 0.459, 0.783),
-//                                    make_quaternion(0.6991598868218329, 0.4651891646565687, 0.5412705526514202,
-//                                                    0.04235254932858261));
-//        right_home_pose_ = make_pose(make_point(0.632, 0.459, 0.783),
-//                                     make_quaternion(0.6991598868218329, 0.4651891646565687, 0.5412705526514202,
-//                                                     0.04235254932858261));
         pandaLeftSrv = nh.advertiseService("/panda_left/create_cartesian_trajectory", &multiThreadService::pandaLeftCB,
                                            this);
         pandarightSrv = nh.advertiseService("/panda_right/create_cartesian_trajectory",
@@ -94,7 +66,6 @@ private:
     ros::ServiceServer pandaLeftSrv;
     ros::ServiceServer pandarightSrv;
     ros::Publisher pub_right_joint_, pub_left_joint_;
-//    geometry_msgs::Pose left_home_pose_, right_home_pose_;
     Eigen::Matrix<double, 7, 1> upper_joint_position_warning_limits_, lower_joint_position_warning_limits_;
     ros::ServiceClient getCurrentPoseClientLeft, getCurrentPoseClientRight;
     Arm_Client *action_client_left_;
@@ -111,10 +82,6 @@ private:
 
     bool pandaRightCB(roport::ExecuteGroupPose::Request &req,
                       roport::ExecuteGroupPose::Response &res);
-
-//    void done_cb(const actionlib::SimpleClientGoalState &state, const cartesian_control_msgs::FollowCartesianTrajectoryResultConstPtr &result);
-//    void active_cb();
-//    void feedback_cb(const cartesian_control_msgs::FollowCartesianTrajectoryFeedbackConstPtr &feedback);
 };
 
 void multiThreadService::get_min_jerk_pose_trajectory(double time_step, double run_time,
