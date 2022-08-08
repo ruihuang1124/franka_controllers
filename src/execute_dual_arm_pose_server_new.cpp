@@ -31,7 +31,7 @@ public:
         right_arm_msg_ = new roport::ExecuteGroupPose();
 
 
-        execute_curi_joint_server_ = nh_.advertiseService("/execute_curi_pose",
+        execute_curi_joint_server_ = nh_.advertiseService("/execute_dual_arm_pose",
                                                           &MultiClientCallServer::ExecuteCallingMultiClientCB, this);
         ROS_INFO("Multi client calling server startup!");
     }
