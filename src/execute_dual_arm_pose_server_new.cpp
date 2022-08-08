@@ -8,7 +8,7 @@
 #include <sensor_msgs/JointState.h>
 #include <boost/thread.hpp>
 #include "roport/ExecuteGroupPose.h"
-#include "franka_controllers/ExecuteDualPose.h"
+#include "roport/ExecuteDualArmPose.h"
 #include <thread>
 
 class MultiClientCallServer {
@@ -46,8 +46,8 @@ public:
     }
 
 
-    bool ExecuteCallingMultiClientCB(franka_controllers::ExecuteDualPose::Request &req,
-                                     franka_controllers::ExecuteDualPose::Response &res);
+    bool ExecuteCallingMultiClientCB(roport::ExecuteDualArmPose::Request &req,
+                                     roport::ExecuteDualArmPose::Response &res);
 
     void CallingThread1();
 
@@ -98,26 +98,26 @@ void MultiClientCallServer::CallingThread2() {
 
 
 
-bool MultiClientCallServer::ExecuteCallingMultiClientCB(franka_controllers::ExecuteDualPose::Request &req,
-                                                        franka_controllers::ExecuteDualPose::Response &res) {
+bool MultiClientCallServer::ExecuteCallingMultiClientCB(roport::ExecuteDualArmPose::Request &req,
+                                                        roport::ExecuteDualArmPose::Response &res) {
     ROS_INFO("Start Running multi client calling service!!");
-    left_arm_msg_->request.goal.position.x = req.goal_left.position.x;
-    left_arm_msg_->request.goal.position.y = req.goal_left.position.y;
-    left_arm_msg_->request.goal.position.z = req.goal_left.position.z;
-    left_arm_msg_->request.goal.orientation.x = req.goal_left.orientation.x;
-    left_arm_msg_->request.goal.orientation.y = req.goal_left.orientation.y;
-    left_arm_msg_->request.goal.orientation.z = req.goal_left.orientation.z;
-    left_arm_msg_->request.goal.orientation.w = req.goal_left.orientation.w;
-    left_arm_msg_->request.tolerance = req.tolerance;
+    left_arm_msg_->request.goal.position.x = req.left_goal.position.x;
+    left_arm_msg_->request.goal.position.y = req.left_goal.position.y;
+    left_arm_msg_->request.goal.position.z = req.left_goal.position.z;
+    left_arm_msg_->request.goal.orientation.x = req.left_goal.orientation.x;
+    left_arm_msg_->request.goal.orientation.y = req.left_goal.orientation.y;
+    left_arm_msg_->request.goal.orientation.z = req.left_goal.orientation.z;
+    left_arm_msg_->request.goal.orientation.w = req.left_goal.orientation.w;
+    left_arm_msg_->request.tolerance = req.run_time;
 
-    right_arm_msg_->request.goal.position.x = req.goal_right.position.x;
-    right_arm_msg_->request.goal.position.y = req.goal_right.position.y;
-    right_arm_msg_->request.goal.position.z = req.goal_right.position.z;
-    right_arm_msg_->request.goal.orientation.x = req.goal_right.orientation.x;
-    right_arm_msg_->request.goal.orientation.y = req.goal_right.orientation.y;
-    right_arm_msg_->request.goal.orientation.z = req.goal_right.orientation.z;
-    right_arm_msg_->request.goal.orientation.w = req.goal_right.orientation.w;
-    right_arm_msg_->request.tolerance = req.tolerance;
+    right_arm_msg_->request.goal.position.x = req.right_goal.position.x;
+    right_arm_msg_->request.goal.position.y = req.right_goal.position.y;
+    right_arm_msg_->request.goal.position.z = req.right_goal.position.z;
+    right_arm_msg_->request.goal.orientation.x = req.right_goal.orientation.x;
+    right_arm_msg_->request.goal.orientation.y = req.right_goal.orientation.y;
+    right_arm_msg_->request.goal.orientation.z = req.right_goal.orientation.z;
+    right_arm_msg_->request.goal.orientation.w = req.right_goal.orientation.w;
+    right_arm_msg_->request.tolerance = req.run_time;
 
     *left_arm_execute_finished_flag_ = false;
     *right_arm_execute_finished_flag_ = false;
