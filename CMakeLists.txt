@@ -221,6 +221,7 @@ add_executable(execute_dual_arm_joint_server src/execute_dual_arm_joint_server.c
 add_executable(pub_joint_ptp_trajectory src/pub_joint_ptp_trajectory.cpp)
 add_executable(execute_cartesian_trajectory_action_client src/execute_cartesian_trajectory_action_client.cpp)
 add_executable(execute_dual_arm_pose_new src/execute_dual_arm_pose_server_new.cpp)
+add_executable(execute_dual_arm_pose_torso_joint_position src/execute_dual_arm_pose_torso_joint_position_server.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -251,6 +252,7 @@ add_dependencies(execute_dual_arm_joint_server ${${PROJECT_NAME}_EXPORTED_TARGET
 add_dependencies(pub_joint_ptp_trajectory ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(execute_cartesian_trajectory_action_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(execute_dual_arm_pose_new ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(execute_dual_arm_pose_torso_joint_position ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
@@ -317,6 +319,11 @@ target_link_libraries(execute_cartesian_trajectory_action_client
         )
 
 target_link_libraries(execute_dual_arm_pose_new
+        ${PROJECT_NAME}
+        ${catkin_LIBRARIES}
+        )
+
+target_link_libraries(execute_dual_arm_pose_torso_joint_position
         ${PROJECT_NAME}
         ${catkin_LIBRARIES}
         )
