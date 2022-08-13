@@ -33,7 +33,7 @@ public:
 
         execute_curi_joint_server_ = nh_.advertiseService("/execute_dual_arm_pose",
                                                           &MultiClientCallServer::ExecuteCallingMultiClientCB, this);
-        ROS_INFO("Multi client calling server startup!");
+        ROS_INFO("/execute_dual_arm_pose service server startup!");
     }
 
     ~MultiClientCallServer() {
@@ -130,7 +130,7 @@ bool MultiClientCallServer::ExecuteCallingMultiClientCB(roport::ExecuteDualArmPo
             *right_arm_execute_finished_flag_ = false;
             *start_calling_flag_ = false;
         }
-        ros::Duration(0.001).sleep();
+        ros::Duration(0.1).sleep();
     }
     *finish_calling_flag_ = false;
     res.result_status = res.SUCCEEDED;
